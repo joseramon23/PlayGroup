@@ -118,7 +118,23 @@ const updateUser = async (req, res) => {
     } catch(error) {
         res.status(500).json({message: "Error al actualizar el usuario", messageError: error.message})
     }
+}
 
+const deleteUser = async (req, res) => {
+    const userId = req.params.id
+    try {
+        const deleteUser = await User.deleteUser(userId)
+        if(deleteUser) {
+            res.status(202).json({
+                statusCode: 200,
+                statusMessage: 'Deleted',
+                message: 'Se ha borrado correctamente',
+                data: deleteUser
+            })
+        }
+    } catch(error) {
+        res.status(500).json({message: "Error al borrar el usuario", messageError: error.message})
+    }
 }
 
 export default {
