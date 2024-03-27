@@ -5,23 +5,37 @@ import jwt from 'jsonwebtoken'
 const validateUser = (user) => {
     const data = ['name', 'email', 'password', 'passwordConfirm']
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
-    const passRegex = /^(?=.*[A-Z])(?=.*\d{2,}).{8,}$/
 
+    // Comprobar campos requeridos
     for (const field of data) {
         if(!user[field]) {
             return { isValid: false, message: `El campo ${field} es requerido` }
         }
     }
 
+    // Email válido
     if(!emailRegex.test(user.email)) {
         return { isValid: false, message: 'El email introducido no es válido'}
     }
 
+    // Comparar contraseñas
     if(user.password !== user.passwordConfirm) {
         return { isValid: false, message: 'Las contraseñas no coinciden' }
     }
 
-    if (!passRegex.test(user.password)) {
+    // Validación de contraseña
+    const validatePass = validatePassword(user.password)
+
+    if(!validatePass.isValid) {
+        return validatePass
+    }
+
+    return { isValid: true }
+}
+
+const validatePassword = (password) => {
+    const passRegex = /^(?=.*[A-Z])(?=.*\d{2,}).{8,}$/
+    if (!passRegex.test(password)) {
         return { isValid: false, message: 'La contraseña debe tener una mayúscula, al menos 2 números y mínimo 8 caracteres' }
     }
 
@@ -137,9 +151,59 @@ const deleteUser = async (req, res) => {
     }
 }
 
+const userUpdatePassword = async (req, res) => {
+    const userId = req.params.id
+    const user = await User.getUser(userId)
+    const { password, newPassword } = req.body
+    const validatePass = validatePassword(newPassword)
+    const data = {
+        name: user.name,
+        email: user.email,
+        password: user.password,
+        rol: user.rol,
+        image: user.image,
+        updated_at: new Date()
+    }
+
+    if(!validatePass.isValid) {
+        return res.status(400).json({
+            statusCode: 400,
+            statusMessage: 'Bad request',
+            message: validatePass.message
+        })
+    }
+    
+    try {
+
+        if(bcrypt.compareSync(password, user.password)) {
+            // Actualizar contraseña
+            const encryptNewPass = bcrypt.hashSync(newPassword, 10)
+            data.password = encryptNewPass
+            await User.updateUser(userId, data)
+            res.status(201).json({
+                statusCode: 201,
+                statusMessage: 'Updated',
+                message: 'contraseña actualizada'
+            })
+        } else {
+            res.status(400).json({
+                statusCode: 400,
+                statusMessage: 'Bad request',
+                message: 'contraseña incorrecta'
+            })
+        }
+    } catch(error) {
+        res.status(500).json({message: "Error al cambiar la contraseña", messageError: error.message})
+    }
+
+
+}
+
 export default {
     getAllUsers,
     getUser,
     createUser,
-    updateUser
+    updateUser,
+    deleteUser,
+    userUpdatePassword
 }

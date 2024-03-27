@@ -15,7 +15,7 @@ class User {
     }
 
     async getUser(id) {
-        const sql = 'SELECT name, email, rol, image FROM users WHERE id = ?'
+        const sql = 'SELECT name, email, password, rol, image FROM users WHERE id = ?'
         const [result] = await this.pool.query(sql, [id])
 
         if (result.length <= 0) throw new Error("No se ha encontrado el usuario seleccionado")
@@ -32,9 +32,9 @@ class User {
     }
 
     async updateUser(id, data) {
-        const { name, email, rol, image, updated_at } = data
-        const sql = 'UPDATE users SET name = ?, email = ?, rol = ?, image = ?, updated_at = ? WHERE id = ?'
-        const [result] = await this.pool.query(sql, [name, email, rol, image, updated_at, id])
+        const { name, email, password, rol, image, updated_at } = data
+        const sql = 'UPDATE users SET name = ?, email = ?, password = ?, rol = ?, image = ?, updated_at = ? WHERE id = ?'
+        const [result] = await this.pool.query(sql, [name, email, password, rol, image, updated_at, id])
 
         if(result.affectedRows <= 0) throw new Error("Ha ocurrido un error al actualizar el usuario")
         return result
