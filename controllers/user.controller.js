@@ -1,5 +1,5 @@
 import User from '../models/user.model.js'
-import { validatePassword, validateUser } from '../utils/validate.js'
+import { validatePassword, validateUser } from '../utils/validateUser.js'
 import bcrypt from 'bcrypt'
 import jwt from 'jsonwebtoken'
 
@@ -8,7 +8,11 @@ const getAllUsers = async (req, res) => {
         const users = await User.getAllUsers()
         res.json(users)
     } catch (error) {
-        res.status(500).json({message: "Error al obtener los usuarios", error: error.message})
+        res.status(500).json({
+            statusCode: 500,
+            statusMessage: 'Error',
+            message: `Error al obtener los usuarios: ${error.message}`
+        })
     }
 }
 
@@ -20,7 +24,11 @@ const getUser = async (req, res) => {
             user: user
         })
     } catch (error) {
-        res.status(500).json({message: "Error al obtener el usuario", messageError: error.message})
+        res.status(500).json({
+            statusCode: 500,
+            statusMessage: 'Error',
+            message: `Error al obtener el usuario: ${error.message}`
+        })
     }
 }
 
@@ -40,7 +48,7 @@ const createUser = async (req, res) => {
     
     // Crear la data para insertar
     const data = {
-        name: name,
+        name: name.trim(),
         email: email,
         password: encryptPass,
         rol: !rol ? "profesor" : rol,
@@ -60,10 +68,15 @@ const createUser = async (req, res) => {
         })
 
     } catch(error) {
-        res.status(500).json({message: "Error al crear el usuario", messageError: error.message})
+        res.status(500).json({
+            statusCode: 500,
+            statusMessage: 'Error',
+            message: `Error al crear el usuario: ${error.message}`
+        })
     }
 }
 
+// TODO REVISAR LA VALIDACION DE NUEVO
 const updateUser = async (req, res) => {
     const { name, email, rol, image } = req.body
     const user = await User.getUser(req.params.id)
@@ -74,6 +87,7 @@ const updateUser = async (req, res) => {
         message: 'No se ha encontrado el usuario'
     })
 
+    // Preparar la data con los nuevos datos y los antiguos
     const data = {
         name: name ? name : user.name,
         email: email ? email : user.email,
@@ -91,7 +105,11 @@ const updateUser = async (req, res) => {
             data: updatedUser
         })
     } catch(error) {
-        res.status(500).json({message: "Error al actualizar el usuario", messageError: error.message})
+        res.status(500).json({
+            statusCode: 500,
+            statusMessage: 'Error',
+            message: `Error al actualizar el usuario: ${error.message}`
+        })
     }
 }
 
@@ -108,7 +126,11 @@ const deleteUser = async (req, res) => {
             })
         }
     } catch(error) {
-        res.status(500).json({message: "Error al borrar el usuario", messageError: error.message})
+        res.status(500).json({
+            statusCode: 500,
+            statusMessage: 'Error',
+            message: `Error al borrar el usuario: ${error.message}`
+        })
     }
 }
 
@@ -154,7 +176,11 @@ const userUpdatePassword = async (req, res) => {
             })
         }
     } catch(error) {
-        res.status(500).json({message: "Error al cambiar la contraseña", messageError: error.message})
+        res.status(500).json({
+            statusCode: 500,
+            statusMessage: 'Error',
+            message: `Error al borrar el usuario: ${error.message}`
+        })
     }
 
 
