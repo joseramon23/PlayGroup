@@ -1,4 +1,4 @@
-import { pool } from '../config/db_connect.js'
+const { pool } = require('../config/db_connect') 
 
 class User {
     constructor() {
@@ -49,4 +49,4 @@ class User {
     }
 }
 
-export default new User()
+module.exports = new User()

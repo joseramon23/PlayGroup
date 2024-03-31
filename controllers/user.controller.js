@@ -1,7 +1,7 @@
-import User from '../models/user.model.js'
-import { validatePassword, validateUser } from '../utils/validateUser.js'
-import bcrypt from 'bcrypt'
-import jwt from 'jsonwebtoken'
+const User = require('../models/user.model.js') 
+const { validatePassword, validateUser } = require('../utils/validateUser.js')
+const bcrypt = require('bcrypt') 
+const jwt = require('jsonwebtoken') 
 
 const getAllUsers = async (req, res) => {
     try {
@@ -186,7 +186,7 @@ const userUpdatePassword = async (req, res) => {
 
 }
 
-export default {
+module.exports = {
     getAllUsers,
     getUser,
     createUser,

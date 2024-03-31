@@ -1,4 +1,4 @@
-export const validateUser = (user) => {
+const validateUser = (user) => {
     const data = ['name', 'email', 'password', 'passwordConfirm']
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
 
@@ -29,7 +29,7 @@ export const validateUser = (user) => {
     return { isValid: true }
 }
 
-export const validatePassword = (password) => {
+const validatePassword = (password) => {
     const passRegex = /^(?=.*[A-Z])(?=.*\d{2,}).{8,}$/
     if (!passRegex.test(password)) {
         return { isValid: false, message: 'La contraseña debe tener una mayúscula, al menos 2 números y mínimo 8 caracteres' }
@@ -37,3 +37,5 @@ export const validatePassword = (password) => {
 
     return { isValid: true }
 }
+
+module.exports = { validateUser, validatePassword }
