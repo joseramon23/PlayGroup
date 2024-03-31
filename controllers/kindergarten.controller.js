@@ -21,11 +21,11 @@ const getAllKindergarten = async (req, res) => {
 const getKindergarten = async (req, res) => {
     try {
         const kindergartenId = req.params.id
-        const kindergarten = await KindergardenModel.getKindegarten(kindergartenId)
+        const kindergarten = await KindergartenModel.getKindegarten(kindergartenId)
         res.status(200).json({
             statusCode: 200,
             statusMessage: 'Accepted',
-            kindergarden: kindergarten
+            kindergarten: kindergarten
         })
     } catch(error) {
         res.status(500).json({
@@ -59,7 +59,7 @@ const createKindergarten = async (req, res) => {
 
     // Insertar la nueva guarderia
     try {
-        const kindergarten = kindergardenModel.createKindergarten(data)
+        const kindergarten = kindergartenModel.createKindergarten(data)
         res.status(201).json({
             statusCode: 201,
             statusMessage: 'Created',

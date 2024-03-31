@@ -16,7 +16,7 @@ class Kindergarten {
 
     async getKindegarten(id) {
         const sql = 'SELECT id, name, address, phone, email, user_id, created_at, updated_at FROM kindergarten WHERE id = ?'
-        const [result] = await this.pool.query(sql [id])
+        const [result] = await this.pool.query(sql, [id])
 
         if(result.length <= 0) throw new Error('No se ha encontrado la guardería seleccionada')
 
