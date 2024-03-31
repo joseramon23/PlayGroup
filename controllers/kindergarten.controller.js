@@ -1,0 +1,140 @@
+const KindergartenModel = require('../models/kindergarten.model.js')
+const validateKindergarten = require('../utils/validateKg.js')
+
+const getAllKindergarten = async (req, res) => {
+    try {
+        const kindergartens = await KindergartenModel.getAllKindergarten()
+        res.status(200).json({
+            statusCode: 200,
+            statusMessage: 'Accepted',
+            data: kindergartens
+        })
+    } catch(error) {
+        res.status(500).json({
+            statusCode: 500,
+            statusMessage: 'Error',
+            message: `Error al obtener las guarderias: ${error.message}`
+        })
+    }
+}
+
+const getKindergarten = async (req, res) => {
+    try {
+        const kindergartenId = req.params.id
+        const kindergarten = await KindergardenModel.getKindegarten(kindergartenId)
+        res.status(200).json({
+            statusCode: 200,
+            statusMessage: 'Accepted',
+            kindergarden: kindergarten
+        })
+    } catch(error) {
+        res.status(500).json({
+            statusCode: 500,
+            statusMessage: 'Error',
+            message: `Error al obtener la guardería: ${error.message}`
+        })
+    }
+}
+
+const createKindergarten = async (req, res) => {
+    const { name, address, phone, email, userId } = req.body
+    const validation = validateKindergarten(req.body)
+    
+    // Comprobar si la validación es correcta
+    if(!validation.isValid) {
+        return res.status(400).json({
+            statusCode: 400,
+            statusMessage: validation.message
+        })
+    }
+
+    // Crear la data para insertar
+    const data = {
+        name: name.trim(),
+        address: address,
+        phone: phone,
+        email: email,
+        user_id: userId
+    }
+
+    // Insertar la nueva guarderia
+    try {
+        const kindergarten = kindergardenModel.createKindergarten(data)
+        res.status(201).json({
+            statusCode: 201,
+            statusMessage: 'Created',
+            message: 'Se ha creado correctamente',
+            id: kindergarten
+        })
+    } catch (error) {
+        res.status(500).json({
+            statusCode: 500,
+            statusMessage: 'Error',
+            message: `Error al crear la guardería: ${error.message}`
+        })
+    }
+}
+
+const updateKindergarten = async (req, res) => {
+    const { name, address, phone, email, userId } = req.body
+    const kindergarten = kindergartenModel.getKindegarten(req.params.id)
+
+    if(!kindergarten) return res.status(404).json({
+        statusCode: 404,
+        statusMessage: 'Unknown',
+        message: 'No se ha encontrado la guardería'
+    })
+
+    const data = {
+        name: name ? name : kindergarten.name,
+        address: address ? address : kindergarten.address,
+        phone: phone ? phone : kindergarten.phone,
+        email: email ? email : kindergarten.email,
+        user_id: userId ? userId : kindergarten.user_id
+    }
+
+    try {
+        const updateKindergarten = kindergartenModel.updateKindergarten(req.params.id, data)
+        res.status(200).json({
+            statusCode: 200,
+            statusMessage: 'Updated',
+            message: 'Se ha actualizado correctamente',
+            data: updateKindergarten
+        })
+    } catch(error) {
+        res.status(500).json({
+            statusCode: 500,
+            statusMessage: 'Error',
+            message: `Error al actualizar la guardería: ${error.message}`
+        })       
+    }
+}
+
+const deleteKindergarten = async (req, res) => {
+    const kindergartenId = req.params.id
+    try {
+        const deleteKindergarten = await KindergartenModel.deleteKindergarten(kindergartenId)
+        if(deleteKindergarten) {
+            res.status(202).json({
+                statusCode: 200,
+                statusMessage: 'Deleted',
+                message: 'Se ha borrado correctamente',
+                data: deleteUser
+            })
+        }
+    } catch(error) {
+        res.status(500).json({
+            statusCode: 500,
+            statusMessage: 'Error',
+            message: `Error al borrar la guardería: ${error.message}`
+        })
+    }
+}
+
+module.exports = {
+    getAllKindergarten,
+    getKindergarten,
+    createKindergarten,
+    updateKindergarten,
+    deleteKindergarten
+}
