@@ -24,18 +24,18 @@ class Kindergarten {
     }
 
     async createKindergarten(data) {
-        const { name, address, phone, email, userId } = data
+        const { name, address, phone, email, user_id } = data
         const sql = 'INSERT INTO kindergarten (name, address, phone, email, user_id) VALUES (?, ?, ?, ?, ?)'
-        const [result] = await this.pool.query(sql, [name, address, phone, email, userId])
+        const [result] = await this.pool.query(sql, [name, address, phone, email, user_id])
 
         if(result.affectedRows <= 0) throw new Error('Error al crear la nueva guardería')
         return result
     }
 
     async updateKindergarten(id, data) {
-        const { name, address, phone, email, userId, updated_at } = data
+        const { name, address, phone, email, user_id, updated_at } = data
         const sql = 'UPDATE kindergarten SET name = ?, address = ?, phone = ?, email = ?, user_id = ?, updated_at = ? WHERE id = ?'
-        const [result] = await this.pool.query(sql, [name, address, phone, email, userId, updated_at, id])
+        const [result] = await this.pool.query(sql, [name, address, phone, email, user_id, updated_at, id])
 
         if(result.affectedRows <= 0) throw new Error('Error al actualizar la guardería')
         return result
@@ -51,4 +51,4 @@ class Kindergarten {
 
 }
 
-module.exports = new Kindergarten()
+module.exports = Kindergarten

@@ -1,5 +1,6 @@
-const KindergartenModel = require('../models/kindergarten.model.js')
-const validateKindergarten = require('../utils/validateKg.js')
+const Kindergarten = require('../models/kindergarten.model.js')
+const KindergartenModel = new Kindergarten
+const { validateKindergarten } = require('../utils/validate.js')
 
 const getAllKindergarten = async (req, res) => {
     try {
@@ -38,7 +39,7 @@ const getKindergarten = async (req, res) => {
 
 const createKindergarten = async (req, res) => {
     const { name, address, phone, email, userId } = req.body
-    const validation = validateKindergarten(req.body)
+    const validation = await validateKindergarten(req.body)
     
     // Comprobar si la validación es correcta
     if(!validation.isValid) {
@@ -56,15 +57,16 @@ const createKindergarten = async (req, res) => {
         email: email,
         user_id: userId
     }
-
+    
     // Insertar la nueva guarderia
     try {
-        const kindergarten = kindergartenModel.createKindergarten(data)
+        const kindergarten = await KindergartenModel.createKindergarten(data)
+
         res.status(201).json({
             statusCode: 201,
             statusMessage: 'Created',
             message: 'Se ha creado correctamente',
-            id: kindergarten
+            id: kindergarten.insertId
         })
     } catch (error) {
         res.status(500).json({
@@ -77,7 +79,7 @@ const createKindergarten = async (req, res) => {
 
 const updateKindergarten = async (req, res) => {
     const { name, address, phone, email, userId } = req.body
-    const kindergarten = kindergartenModel.getKindegarten(req.params.id)
+    const kindergarten = KindergartenModel.getKindegarten(req.params.id)
 
     if(!kindergarten) return res.status(404).json({
         statusCode: 404,
@@ -93,13 +95,24 @@ const updateKindergarten = async (req, res) => {
         user_id: userId ? userId : kindergarten.user_id
     }
 
+    const validation = await validateKindergarten(req.body)
+    
+    // Comprobar si la validación es correcta
+    if(!validation.isValid) {
+        return res.status(400).json({
+            statusCode: 400,
+            statusMessage: validation.message
+        })
+    }
+
     try {
-        const updateKindergarten = kindergartenModel.updateKindergarten(req.params.id, data)
+        const updateKindergarten = await KindergartenModel.updateKindergarten(req.params.id, data)
+        console.log(updateKindergarten)
         res.status(200).json({
             statusCode: 200,
             statusMessage: 'Updated',
             message: 'Se ha actualizado correctamente',
-            data: updateKindergarten
+            data: data
         })
     } catch(error) {
         res.status(500).json({
@@ -118,8 +131,7 @@ const deleteKindergarten = async (req, res) => {
             res.status(202).json({
                 statusCode: 200,
                 statusMessage: 'Deleted',
-                message: 'Se ha borrado correctamente',
-                data: deleteUser
+                message: 'Se ha borrado correctamente'
             })
         }
     } catch(error) {
