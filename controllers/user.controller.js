@@ -1,5 +1,6 @@
-const User = require('../models/user.model.js') 
-const { validatePassword, validateUser } = require('../utils/validateUser.js')
+const UserModel = require('../models/user.model.js')
+const User = new UserModel 
+const { validatePassword, validateUser, validateIsEmail } = require('../utils/validate.js')
 const bcrypt = require('bcrypt') 
 const jwt = require('jsonwebtoken') 
 
