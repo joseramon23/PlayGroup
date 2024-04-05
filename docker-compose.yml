@@ -1,5 +1,17 @@
 version: '3.8'
 services:
+  playgroup:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    env_file: 
+      - .env
+    depends_on:
+      - playgroupdb
+    links:
+      - playgroupdb
+    ports:
+      - "$NODE_LOCAL_PORT:$NODE_DOCKER_PORT"
   playgroupdb:
     image: mysql:8.3
     command: --default-authentication-plugin=caching_sha2_password
@@ -20,15 +32,3 @@ services:
 volumes:
   playgroupdatabase:
 
-  playgroup:
-    build:
-      context: .
-      dockerfile: Dockerfile
-    env_file: 
-      - .env
-    depends_on:
-      - playgroupdb
-    links:
-      - playgroupdb
-    ports:
-      - "$NODE_LOCAL_PORT:$NODE_DOCKER_PORT"

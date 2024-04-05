@@ -1,4 +1,4 @@
-FROM node:18
+FROM node:21
 
 RUN mkdir -p /home/app
 
@@ -6,7 +6,7 @@ WORKDIR /home/app
 
 COPY /package*.json ./
 
-RUN npm install
+RUN npm install && npm rebuild bcrypt
 
 COPY . /home/app/
 
