@@ -1,5 +1,7 @@
 const UserModel = require('../models/user.model')
+const KindergartenModel = require('../models/kindergarten.model')
 const User = new UserModel
+const Kindergarten = new KindergartenModel
 
 const validateUser = (user) => {
     const data = ['name', 'email', 'password', 'passwordConfirm']
@@ -28,7 +30,7 @@ const validateUser = (user) => {
 }
 
 const validateKindergarten = async (kindergarten)  => {
-    const data = ['name', 'address', 'phone', 'email', 'userId']
+    const data = ['name', 'address', 'phone', 'email', 'user_id']
 
     // Comprobar campos requeridos
     const isEmpty = fieldIsEmpty(kindergarten, data)
@@ -46,11 +48,11 @@ const validateKindergarten = async (kindergarten)  => {
     if(!validatePhone.isValid) return validatePhone
 
     // Comprobar si existe el usuario
-    const validateUser = await userExists(kindergarten.userId)
+    const validateUser = await userExists(kindergarten.user_id)
 
     if(!validateUser.isValid) return validateUser
 
-    return { isValid: true }
+    return { isValid: true, user: validateUser.user }
 }
 
 const validatePassword = (password) => {
@@ -65,7 +67,7 @@ const validatePassword = (password) => {
 const validateIsEmail = (email) => {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
     if(!emailRegex.test(email)) {
-        return { isValid: false, message: 'El email introducido no es correcto'}
+        return { isValid: false, message: 'El email introducido no es válido'}
     }
 
     return { isValid: true }
@@ -76,7 +78,7 @@ const validatePhoneNumber = (phone) => {
 
     if(!phoneRegex.test(phone)) return { 
         isValid: false,
-        message: 'El telefono introducido no es valido'
+        message: 'El teléfono introducido no es válido'
     }
 
     return { isValid: true }
@@ -86,11 +88,21 @@ const userExists = async (userId) => {
     try{
         const user = await User.getUser(userId)
         
-        if(user) return { isValid: true }
+        if(user) return { isValid: true, user: user }
     } catch (error) {
         return { isValid: false, message: error.message }
     }
-} 
+}
+
+const kindergartenExists = async (id) => {
+    try {
+        const kindergarten = await Kindergarten.getKindegarten(id)
+
+        if(kindergarten) return { isValid: true, data: kindergarten }
+    } catch (error) {
+        return { isValid: false, message: error.message }
+    }
+}
 
 const fieldIsEmpty = (user, data) => {
     const emptyFields = {}
@@ -111,8 +123,7 @@ const fieldIsEmpty = (user, data) => {
 module.exports = { 
     validateUser,
     validatePassword ,
-    validateIsEmail,
-    validatePhoneNumber,
     validateKindergarten,
-    userExists
+    userExists,
+    kindergartenExists
 }
