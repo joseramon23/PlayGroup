@@ -1,10 +1,10 @@
 -- Tabla usuarios
 CREATE TABLE users (
     id INT AUTO_INCREMENT PRIMARY KEY,
-    name VARCHAR(100),
-    email VARCHAR(100) UNIQUE,
-    password VARCHAR(255),
-    rol ENUM('director', 'profesor') DEFAULT 'profesor',
+    name VARCHAR(100) NOT NULL,
+    email VARCHAR(100) NOT NULL UNIQUE,
+    password VARCHAR(255) NOT NULL,
+    rol ENUM('director', 'profesor', 'webadmin') DEFAULT 'profesor',
     image VARCHAR(255),
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
@@ -92,3 +92,17 @@ CREATE TABLE diary (
   FOREIGN KEY (note_id) REFERENCES notes_diary(id),
   FOREIGN KEY (attendance_id) REFERENCES attendance_diary(id)
 );
+
+-- Tabla recuperar contraseña
+CREATE TABLE password_reset_token (
+  email VARCHAR(100) PRIMARY KEY,
+  token VARCHAR(255),
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  FOREIGN KEY (email) REFERENCES users(email)
+);
+
+-- Añadir nueva columna a users
+ALTER TABLE users
+ADD COLUMN kindergarten_id INT,
+ADD CONSTRAINT fk_users_kindergarten
+FOREIGN KEY (kindergarten_id) REFERENCES kindergarten(id);
