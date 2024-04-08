@@ -45,7 +45,7 @@ class Kindergarten {
         const sql = 'DELETE FROM kindergarten WHERE id = ?'
         const [result] = await this.pool.query(sql, [id])
 
-        if(result.affectedRows <= 0) throw new Error('Error al borrar la guarderia')
+        if(result.affectedRows <= 0) throw new Error('Error al borrar la guardería')
         return result
     }
 

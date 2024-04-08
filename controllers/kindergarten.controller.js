@@ -1,8 +1,22 @@
+const jwt = require('jsonwebtoken')
 const Kindergarten = require('../models/kindergarten.model.js')
+const UserModel = require('../models/user.model.js')
+const User = new UserModel
 const KindergartenModel = new Kindergarten
-const { validateKindergarten } = require('../utils/validate.js')
+
+const { validateKindergarten, kindergartenExists } = require('../utils/validate.js')
 
 const getAllKindergarten = async (req, res) => {
+    const token = req.headers.authorization
+    const { rol } = jwt.verify(token, process.env.JWT_SECRET)
+
+    if (rol !== 'webadmin') {
+        return res.status(401).json({
+            statusCode: 401,
+            statusMessage: 'Unauthorized',
+            message: 'No estas autorizado para hacer esta acción'
+        })
+    }
     try {
         const kindergartens = await KindergartenModel.getAllKindergarten()
         res.status(200).json({
@@ -20,6 +34,17 @@ const getAllKindergarten = async (req, res) => {
 }
 
 const getKindergarten = async (req, res) => {
+    const token = req.headers.authorization
+    const { kindergarten_id } = jwt.verify(token, process.env.JWT_SECRET)
+
+    if (kindergarten_id !== req.params.id) {
+        return res.status(401).json({
+            statusCode: 401,
+            statusMessage: 'Unauthorized',
+            message: 'No estas autorizado para acceder a esta guardería'
+        })
+    }
+
     try {
         const kindergartenId = req.params.id
         const kindergarten = await KindergartenModel.getKindegarten(kindergartenId)
@@ -38,8 +63,18 @@ const getKindergarten = async (req, res) => {
 }
 
 const createKindergarten = async (req, res) => {
-    const { name, address, phone, email, userId } = req.body
-    const validation = await validateKindergarten(req.body)
+    const { name, address, phone, email, user_id } = req.body
+    // Crear la data para insertar
+    const data = {
+        name: name,
+        address: address,
+        phone: phone,
+        email: email,
+        user_id: user_id
+    }
+
+    const validation = await validateKindergarten(data)
+    console.log(validation)
     
     // Comprobar si la validación es correcta
     if(!validation.isValid) {
@@ -48,19 +83,23 @@ const createKindergarten = async (req, res) => {
             statusMessage: validation.message
         })
     }
-
-    // Crear la data para insertar
-    const data = {
-        name: name.trim(),
-        address: address,
-        phone: phone,
-        email: email,
-        user_id: userId
-    }
     
     // Insertar la nueva guarderia
     try {
         const kindergarten = await KindergartenModel.createKindergarten(data)
+
+        // Data para actualizar la guarderia del usuario
+        const dataUser = {
+            name: validation.user.name,
+            email: validation.user.email,
+            kindergarten_id: kindergarten.insertId,
+            password: validation.user.password,
+            rol: validation.user.rol,
+            image: validation.user.image,
+            updated_at: new Date()
+        }
+        
+        await User.updateUser(user_id, dataUser)
 
         res.status(201).json({
             statusCode: 201,
@@ -79,23 +118,52 @@ const createKindergarten = async (req, res) => {
 
 const updateKindergarten = async (req, res) => {
     const { name, address, phone, email, userId } = req.body
-    const kindergarten = KindergartenModel.getKindegarten(req.params.id)
+    const token = req.headers.authorization
+    const { kindergarten_id } = jwt.verify(token, process.env.JWT_SECRET)
 
-    if(!kindergarten) return res.status(404).json({
-        statusCode: 404,
-        statusMessage: 'Unknown',
-        message: 'No se ha encontrado la guardería'
-    })
-
-    const data = {
-        name: name ? name : kindergarten.name,
-        address: address ? address : kindergarten.address,
-        phone: phone ? phone : kindergarten.phone,
-        email: email ? email : kindergarten.email,
-        user_id: userId ? userId : kindergarten.user_id
+    if (kindergarten_id !== req.params.id) {
+        return res.status(401).json({
+            statusCode: 401,
+            statusMessage: 'Unauthorized',
+            message: 'No estas autorizado para acceder a esta guardería'
+        })
     }
 
-    const validation = await validateKindergarten(req.body)
+    const kindergarten = await kindergartenExists(req.params.id)
+
+    if (Object.keys(req.body).length === 0) {
+        return res.status(400).json({
+            statusCode: 400,
+            statusMessage: 'Bad Request',
+            message: 'El cuerpo de la solicitud está vacío'
+        })
+    }
+
+    if (name === "" || address === "" || phone === "" || email === "" || userId === "") {
+        return res.status(400).json({
+            statusCode: 400,
+            statusMessage: 'Bad Request',
+            message: 'Las propiedades del objeto no pueden estar vacías'
+        })
+    }
+
+    if(!kindergarten.isValid) { 
+        return res.status(404).json({
+            statusCode: 404,
+            statusMessage: 'Unknown',
+            message: kindergarten.message
+        })
+    }
+
+    const data = {
+        name: name ? name : kindergarten.data.name,
+        address: address ? address : kindergarten.data.address,
+        phone: phone ? phone : kindergarten.data.phone,
+        email: email ? email : kindergarten.data.email,
+        user_id: userId ? userId : kindergarten.data.user_id
+    }
+
+    const validation = await validateKindergarten(data)
     
     // Comprobar si la validación es correcta
     if(!validation.isValid) {
@@ -106,8 +174,7 @@ const updateKindergarten = async (req, res) => {
     }
 
     try {
-        const updateKindergarten = await KindergartenModel.updateKindergarten(req.params.id, data)
-        console.log(updateKindergarten)
+        await KindergartenModel.updateKindergarten(req.params.id, data)
         res.status(200).json({
             statusCode: 200,
             statusMessage: 'Updated',
@@ -125,10 +192,21 @@ const updateKindergarten = async (req, res) => {
 
 const deleteKindergarten = async (req, res) => {
     const kindergartenId = req.params.id
+    const token = req.headers.authorization
+    const { rol } = jwt.verify(token, process.env.JWT_SECRET)
+
+    if (rol !== 'webadmin') {
+        return res.status(401).json({
+            statusCode: 401,
+            statusMessage: 'Unauthorized',
+            message: 'No estas autorizado para hacer esta acción'
+        })
+    }
+    
     try {
         const deleteKindergarten = await KindergartenModel.deleteKindergarten(kindergartenId)
         if(deleteKindergarten) {
-            res.status(202).json({
+            res.status(200).json({
                 statusCode: 200,
                 statusMessage: 'Deleted',
                 message: 'Se ha borrado correctamente'
@@ -138,7 +216,7 @@ const deleteKindergarten = async (req, res) => {
         res.status(500).json({
             statusCode: 500,
             statusMessage: 'Error',
-            message: `Error al borrar la guardería: ${error.message}`
+            message: error.message
         })
     }
 }
