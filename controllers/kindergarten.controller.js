@@ -1,4 +1,5 @@
-const jwt = require('jsonwebtoken')
+const { errorMessage, unauthorizedMessage, validationError } = require('../utils/errorHandler.js')
+const { responseSuccessData, responseCreatedData } = require('../utils/responseHandler.js')
 const Kindergarten = require('../models/kindergarten.model.js')
 const UserModel = require('../models/user.model.js')
 const User = new UserModel
@@ -7,58 +8,24 @@ const KindergartenModel = new Kindergarten
 const { validateKindergarten, kindergartenExists } = require('../utils/validate.js')
 
 const getAllKindergarten = async (req, res) => {
-    const token = req.headers.authorization
-    const { rol } = jwt.verify(token, process.env.JWT_SECRET)
-
-    if (rol !== 'webadmin') {
-        return res.status(401).json({
-            statusCode: 401,
-            statusMessage: 'Unauthorized',
-            message: 'No estas autorizado para hacer esta acción'
-        })
-    }
     try {
         const kindergartens = await KindergartenModel.getAllKindergarten()
-        res.status(200).json({
-            statusCode: 200,
-            statusMessage: 'Accepted',
-            data: kindergartens
-        })
+        res.status(200).json(responseSuccessData(kindergartens))
     } catch(error) {
-        res.status(500).json({
-            statusCode: 500,
-            statusMessage: 'Error',
-            message: `Error al obtener las guarderias: ${error.message}`
-        })
+        res.status(500).json(errorMessage(`Error al obtener las guarderias: ${error.message}`))
     }
 }
 
 const getKindergarten = async (req, res) => {
-    const token = req.headers.authorization
-    const { kindergarten_id } = jwt.verify(token, process.env.JWT_SECRET)
-
-    if (kindergarten_id !== req.params.id) {
-        return res.status(401).json({
-            statusCode: 401,
-            statusMessage: 'Unauthorized',
-            message: 'No estas autorizado para acceder a esta guardería'
-        })
+    if (req.user.rol !== 'webadmin' && req.user.kindergarten_id !== req.params.id) {
+        return res.status(401).json(unauthorizedMessage('No estas autorizado para acceder a esta guardería'))
     }
 
     try {
-        const kindergartenId = req.params.id
-        const kindergarten = await KindergartenModel.getKindegarten(kindergartenId)
-        res.status(200).json({
-            statusCode: 200,
-            statusMessage: 'Accepted',
-            kindergarten: kindergarten
-        })
+        const kindergarten = await KindergartenModel.getKindegarten(req.params.id)
+        res.status(200).json(responseSuccessData(kindergarten))
     } catch(error) {
-        res.status(500).json({
-            statusCode: 500,
-            statusMessage: 'Error',
-            message: `Error al obtener la guardería: ${error.message}`
-        })
+        res.status(500).json(errorMessage(`Error al obtener la guardería: ${error.message}`))
     }
 }
 
@@ -74,14 +41,10 @@ const createKindergarten = async (req, res) => {
     }
 
     const validation = await validateKindergarten(data)
-    console.log(validation)
     
     // Comprobar si la validación es correcta
     if(!validation.isValid) {
-        return res.status(400).json({
-            statusCode: 400,
-            statusMessage: validation.message
-        })
+        return res.status(400).json(validationError(validation.message))
     }
     
     // Insertar la nueva guarderia
@@ -101,58 +64,31 @@ const createKindergarten = async (req, res) => {
         
         await User.updateUser(user_id, dataUser)
 
-        res.status(201).json({
-            statusCode: 201,
-            statusMessage: 'Created',
-            message: 'Se ha creado correctamente',
-            id: kindergarten.insertId
-        })
+        res.status(201).json(responseCreatedData('Se ha creado correctamente', kindergarten.insertId))
     } catch (error) {
-        res.status(500).json({
-            statusCode: 500,
-            statusMessage: 'Error',
-            message: `Error al crear la guardería: ${error.message}`
-        })
+        res.status(500).json(errorMessage(`Error al crear la guardería: ${error.message}`))
     }
 }
 
 const updateKindergarten = async (req, res) => {
     const { name, address, phone, email, userId } = req.body
-    const token = req.headers.authorization
-    const { kindergarten_id } = jwt.verify(token, process.env.JWT_SECRET)
 
-    if (kindergarten_id !== req.params.id) {
-        return res.status(401).json({
-            statusCode: 401,
-            statusMessage: 'Unauthorized',
-            message: 'No estas autorizado para acceder a esta guardería'
-        })
+    if (req.user.kindergarten_id !== req.params.id) {
+        return res.status(401).json(unauthorizedMessage('No estas autorizado para acceder a esta guardería'))
     }
 
     const kindergarten = await kindergartenExists(req.params.id)
 
     if (Object.keys(req.body).length === 0) {
-        return res.status(400).json({
-            statusCode: 400,
-            statusMessage: 'Bad Request',
-            message: 'El cuerpo de la solicitud está vacío'
-        })
+        return res.status(400).json(validationError('El cuerpo de la solicitud está vacío'))
     }
 
     if (name === "" || address === "" || phone === "" || email === "" || userId === "") {
-        return res.status(400).json({
-            statusCode: 400,
-            statusMessage: 'Bad Request',
-            message: 'Las propiedades del objeto no pueden estar vacías'
-        })
+        return res.status(400).json(validationError('Las propiedades del objeto no pueden estar vacías'))
     }
 
     if(!kindergarten.isValid) { 
-        return res.status(404).json({
-            statusCode: 404,
-            statusMessage: 'Unknown',
-            message: kindergarten.message
-        })
+        return res.status(404).json(validationError(kindergarten.message, 404, 'Uknown'))
     }
 
     const data = {
@@ -167,57 +103,25 @@ const updateKindergarten = async (req, res) => {
     
     // Comprobar si la validación es correcta
     if(!validation.isValid) {
-        return res.status(400).json({
-            statusCode: 400,
-            statusMessage: validation.message
-        })
+        return res.status(400).json(validationError(validation.message))
     }
 
     try {
         await KindergartenModel.updateKindergarten(req.params.id, data)
-        res.status(200).json({
-            statusCode: 200,
-            statusMessage: 'Updated',
-            message: 'Se ha actualizado correctamente',
-            data: data
-        })
+        res.status(200).json(responseSuccessData(data))
     } catch(error) {
-        res.status(500).json({
-            statusCode: 500,
-            statusMessage: 'Error',
-            message: `Error al actualizar la guardería: ${error.message}`
-        })       
+        res.status(500).json(errorMessage(`Error al actualizar la guardería: ${error.message}`))       
     }
 }
 
-const deleteKindergarten = async (req, res) => {
-    const kindergartenId = req.params.id
-    const token = req.headers.authorization
-    const { rol } = jwt.verify(token, process.env.JWT_SECRET)
-
-    if (rol !== 'webadmin') {
-        return res.status(401).json({
-            statusCode: 401,
-            statusMessage: 'Unauthorized',
-            message: 'No estas autorizado para hacer esta acción'
-        })
-    }
-    
+const deleteKindergarten = async (req, res) => {  
     try {
-        const deleteKindergarten = await KindergartenModel.deleteKindergarten(kindergartenId)
+        const deleteKindergarten = await KindergartenModel.deleteKindergarten(req.params.id)
         if(deleteKindergarten) {
-            res.status(200).json({
-                statusCode: 200,
-                statusMessage: 'Deleted',
-                message: 'Se ha borrado correctamente'
-            })
+            res.status(200).json(responseSuccessData('Se ha borrado correctamente'))
         }
     } catch(error) {
-        res.status(500).json({
-            statusCode: 500,
-            statusMessage: 'Error',
-            message: error.message
-        })
+        res.status(500).json(errorMessage(error.message))
     }
 }
 
