@@ -1,6 +1,7 @@
 const express = require('express')
 const { config } = require('dotenv')
 const { json, urlencoded } = require('body-parser')
+const path = require('node:path')
 
 const userRouter = require('./routes/user.routes')
 const kindergartenRouter = require('./routes/kindergarten.routes')
