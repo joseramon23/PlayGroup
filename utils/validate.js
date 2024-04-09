@@ -124,6 +124,7 @@ module.exports = {
     validateUser,
     validatePassword ,
     validateKindergarten,
+    validateIsEmail,
     userExists,
     kindergartenExists
 }
