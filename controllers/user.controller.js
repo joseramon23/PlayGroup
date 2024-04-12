@@ -10,7 +10,7 @@ const { responseSuccessData, responseCreatedData } = require('../utils/responseH
 const getAllUsers = async (req, res) => {
     try {
         const users = await User.getAllUsers()
-        res.json(users)
+        res.status(200).json(responseCreatedData('Petición aceptada', users, 'Accepted'))
     } catch (error) {
         res.status(500).json(errorMessage(`Error al obtener los usuarios: ${error.message}`))
     }
@@ -26,7 +26,7 @@ const getUser = async (req, res) => {
     try {
         const userId = req.params.id
         const user = await User.getUser(userId)
-        res.status(200).json(responseSuccessData(user))
+        res.status(200).json(responseCreatedData('Petición aceptada', user, 'Accepted'))
     } catch (error) {
         res.status(500).json(errorMessage(error.message))
     }
@@ -197,7 +197,7 @@ const loginUser = async (req, res) => {
             { expiresIn: '1d'}
         )
 
-        res.status(200).json(responseCreatedData('Sesion iniciada correctamente', [user.id, token], 'Login'))
+        res.status(200).json(responseCreatedData('Sesion iniciada correctamente', {id: user.id, token: token}, 'Login'))
     } catch (error) {
         res.status(500).json(errorMessage(`Error al iniciar sesión: ${error.message}`))
     }

@@ -6,9 +6,9 @@ const responseSuccessData = (message, statusMessage = 'Accepted', statusCode = 2
     }
 }
 
-const responseCreatedData = ( message, data, statusMessage = 'Created') => {
+const responseCreatedData = ( message, data, statusMessage = 'Created', statusCode = 200) => {
     return {
-        statusCode: 201,
+        statusCode: statusCode,
         statusMessage: statusMessage,
         message: message,
         data: data
