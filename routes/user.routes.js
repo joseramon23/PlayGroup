@@ -13,5 +13,6 @@ router.get('/users', authToken, authAdmin, userController.getAllUsers)
 router.get('/users/:id', authToken, userController.getUser)
 router.put('/users/:id', authToken, upload.single('image'), userController.updateUser)
 router.put('/users/password/:id', authToken, upload.none(), userController.userUpdatePassword)
+router.delete('/users/:id', authToken, userController.deleteUser)
 
 module.exports = router

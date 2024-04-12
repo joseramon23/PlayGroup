@@ -123,6 +123,13 @@ const updateUser = async (req, res) => {
 
 const deleteUser = async (req, res) => {
     const userId = req.params.id
+    const { id } = req.user
+
+    // comprobar si el id del parametro es igual al del token
+    if (id !== Number(req.params.id)) {
+        return res.status(401).json(unauthorizedMessage())
+    }
+    
     try {
         const deleteUser = await User.deleteUser(userId)
         if(deleteUser) {
