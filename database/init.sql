@@ -13,10 +13,10 @@ CREATE TABLE users (
 -- Tabla guarderia
 CREATE TABLE kindergarten (
     id INT AUTO_INCREMENT PRIMARY KEY,
-    name VARCHAR(100),
+    name VARCHAR(100) NOT NULL,
     address VARCHAR(255),
     phone VARCHAR(20),
-    email VARCHAR(100),
+    email VARCHAR(100) NOT NULL,
     user_id INT,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
@@ -26,10 +26,10 @@ CREATE TABLE kindergarten (
 -- Tabla alumnos
 CREATE TABLE students (
     id INT AUTO_INCREMENT PRIMARY KEY,
-    name VARCHAR(100),
+    name VARCHAR(100) NOT NULL,
     image VARCHAR(255),
     birthdate DATE,
-    kindergarten_id INT,
+    kindergarten_id INT NOT NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     FOREIGN KEY (kindergarten_id) REFERENCES kindergarten(id)
@@ -38,22 +38,22 @@ CREATE TABLE students (
 -- Tabla comidas
 CREATE TABLE meals_diary (
   id INT AUTO_INCREMENT PRIMARY KEY,
-  student_id INT,
+  student_id INT NOT NULL,
   first_meal TINYINT(1) DEFAULT 0,
   second_meal TINYINT(1) DEFAULT 0,
   dessert TINYINT(1) DEFAULT 0,
   snack TINYINT(1) DEFAULT 0,
-  date DATE,
+  date DATE NOT NULL,
   FOREIGN KEY (student_id) REFERENCES students(id)
 );
 
 -- Tabla siestas
 CREATE TABLE naps_diary (
   Id INT AUTO_INCREMENT PRIMARY KEY,
-  student_id INT,
+  student_id INT NOT NULL,
   time INT,
   timezone ENUM('morning', 'noon', 'afternoon'),
-  date DATE ,
+  date DATE NOT NULL,
   FOREIGN KEY (student_id) REFERENCES students(id)
 );
 
@@ -62,7 +62,7 @@ CREATE TABLE notes_diary (
   Id INT AUTO_INCREMENT PRIMARY KEY,
   student_id INT,
   content TEXT,
-  date DATE ,
+  date DATE NOT NULL,
   FOREIGN KEY (student_id) REFERENCES students(id)
 );
 
@@ -72,14 +72,14 @@ CREATE TABLE attendance_diary (
   student_id INT,
   entrance_time TIME,
   exit_time TIME,
-  date DATE ,
+  date DATE NOT NULL,
   FOREIGN KEY (student_id) REFERENCES students(id)
 );
 
 -- Tabla agenda
 CREATE TABLE diary (
   id INT PRIMARY KEY,
-  student_id INT,
+  student_id INT NOT NULL,
   deposition INT,
   meal_id INT,
   nap_id INT,
