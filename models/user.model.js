@@ -44,7 +44,7 @@ class User {
         const sql = "DELETE FROM users WHERE id = ?"
         const [result] = await this.pool.query(sql, [id])
 
-        if(result.affectedRows <= 0) throw new Error('Ha ocurrido un error al eliminar el usuairo')
+        if(result.affectedRows <= 0) throw new Error('Ha ocurrido un error al eliminar el usuario')
         return result
     }
 

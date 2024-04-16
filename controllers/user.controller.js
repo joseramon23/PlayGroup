@@ -1,9 +1,11 @@
 const fs = require('node:fs')
 const bcrypt = require('bcrypt')
-const jwt = require('jsonwebtoken') 
+const jwt = require('jsonwebtoken')
+
 const UserModel = require('../models/user.model.js')
-const User = new UserModel 
-const { validatePassword, validateUser, kindergartenExists, validateIsEmail } = require('../utils/validate.js')
+const User = new UserModel
+
+const { validateUserSchema, validatePartialUser } = require('../schemas/users.js')
 const { unauthorizedMessage, errorMessage, validationError } = require('../utils/errorHandler.js')
 const { responseSuccessData, responseCreatedData } = require('../utils/responseHandler.js')
 
@@ -24,8 +26,7 @@ const getUser = async (req, res) => {
     }
 
     try {
-        const userId = req.params.id
-        const user = await User.getUser(userId)
+        const user = await User.getUser(req.params.id)
         res.status(200).json(responseCreatedData('Petición aceptada', user, 'Accepted'))
     } catch (error) {
         res.status(500).json(errorMessage(error.message))
@@ -33,38 +34,24 @@ const getUser = async (req, res) => {
 }
 
 const createUser = async (req, res) => {
-    const { name, email, kindergarten_id, password, rol } = req.body
+    // validación del los datos
+    const data = await validateUserSchema(req.body)
     const image = req.file?.filename
 
-    const validation = validateUser(req.body)
-    // Validar los datos del usuario
-    if (!validation.isValid) {
-        return res.status(400).json(validationError(validation.message))
+    if(!data.success) {
+        return res.status(400).json(validationError(JSON.parse(data.error.message)))
     }
 
-    if (kindergarten_id !== undefined) {
-        const validateKindergarten = await kindergartenExists(kindergarten_id)
+    const { passwordConfirm, ...userData } = data.data
 
-        if(!validateKindergarten.isValid) {
-            return res.status(400).json(validationError(validateKindergarten.message))
-        }
-    }
+    // encriptar contraseña
+    const encryptPass = bcrypt.hashSync(userData.password, 10)
 
-    // Encriptar la contraseña
-    const encryptPass = bcrypt.hashSync(password, 10)
-    
-    // Crear la data para insertar
-    const data = {
-        name: name.trim(),
-        email: email,
-        password: encryptPass,
-        kindergarten_id: kindergarten_id ? kindergarten_id : null,
-        rol: !rol ? "profesor" : rol,
-        image: !image ? "default.jpg" : image
-    }
-    
+    userData.password = encryptPass
+    userData.image = !image ? 'default.jpg' : image
+
     try {
-        const user = await User.createUser(data)
+        const user = await User.createUser(userData)
         const token = jwt.sign(
             { id: user.insertId, kindergarten_id: user.kindergarten_id, rol: user.rol }, 
             process.env.JWT_SECRET,
@@ -79,12 +66,16 @@ const createUser = async (req, res) => {
 }
 
 const updateUser = async (req, res) => {
-    const { name, email, kindergarten_id, rol } = req.body
+    const updateUser = validatePartialUser(req.body)
     const updateImage = req.file?.filename
     const { id } = req.user
 
+    if(!updateUser.success) {
+        return res.status(400).json(validationError(JSON.parse(data.error.message)))
+    }
+
     // comprobar si el id del parametro es igual al del token
-    if (id !== Number(req.params.id)) {
+    if(id !== Number(req.params.id)) {
         return res.status(401).json(unauthorizedMessage())
     }
 
@@ -92,26 +83,22 @@ const updateUser = async (req, res) => {
     const user = await User.getUser(req.params.id)
     if(!user) return res.status(404).json(validationError('No se ha encontrado el usuario', 404, 'Unknown'))
 
-    // Preparar la data con los nuevos datos y los antiguos
+    // agregar los nuevos datos al usuario existente
     const data = {
-        name: name ? name : user.name,
-        email: email ? email : user.email,
-        kindergarten_id: kindergarten_id ? kindergarten_id : user.kindergarten_id,
+        name: updateUser.data?.name ? updateUser.data.name : user.name,
+        email: updateUser.data?.email ? updateUser.data.email : user.email,
+        kindergarten_id: updateUser.data?.kindergarten_id ? updateUser.data.kindergarten_id : user.kindergarten_id,
         password: user.password,
-        rol: rol ? rol : user.rol,
+        rol: updateUser.data?.rol ? updateUser.data.rol : user.rol,
         image: user.image,
         updated_at: new Date()
     }
-    
+
     // si existe nueva imagen, borra la anterior y actualiza el campo
     if(updateImage) {
         fs.unlinkSync(`./public/images/users/${data.image}`)
         data.image = updateImage
     }
-
-    // validacion del email
-    const validation = await validateIsEmail(data.email)
-    if (!validation.isValid) return res.status(400).json(validationError(validation.message))
 
     try {
         await User.updateUser(req.params.id, data)
@@ -149,34 +136,26 @@ const userUpdatePassword = async (req, res) => {
     
     const userId = req.params.id
     const user = await User.getUser(userId)
-    const { password, newPassword } = req.body
-    const validatePass = validatePassword(newPassword)
-    const data = {
-        name: user.name,
-        email: user.email,
-        password: user.password,
-        rol: user.rol,
-        image: user.image,
-        updated_at: new Date()
+    const validatePass = validatePartialUser(req.body)
+
+    if(!validatePass.success) {
+        return res.status(400).json(validationError(JSON.parse(validatePass.error.message)))
     }
 
-    if(!validatePass.isValid) {
-        return res.status(400).json(validationError(validatePass.message))
-    }
-    
     try {
-
-        if(bcrypt.compareSync(password, user.password)) {
+        // comprobar si la contraseña introducida es igual a la base de datos
+        if(bcrypt.compareSync(validatePass.data.password, user.password)) {
+            user.password = validatePass.data.password
             // Actualizar contraseña
-            const encryptNewPass = bcrypt.hashSync(newPassword, 10)
-            data.password = encryptNewPass
-            await User.updateUser(userId, data)
+            const encryptNewPass = bcrypt.hashSync(user.password, 10)
+            user.password = encryptNewPass
+            await User.updateUser(userId, user)
             res.status(201).json(responseSuccessData('Contraseña actualizada', 'Updated', 201))
         } else {
             res.status(400).json(validationError('Contraseña incorrecta'))
         }
     } catch(error) {
-        res.status(500).json(errorMessage(`Error al borrar el usuario: ${error.message}`))
+        res.status(500).json(errorMessage(`Error al actualizar contraseña: ${error.message}`))
     }
 }
 
@@ -203,7 +182,6 @@ const loginUser = async (req, res) => {
             process.env.JWT_SECRET,
             { expiresIn: '1d'}
         )
-
         res.status(200).json(responseCreatedData('Sesion iniciada correctamente', {id: user.id, token: token}, 'Login'))
     } catch (error) {
         res.status(500).json(errorMessage(`Error al iniciar sesión: ${error.message}`))

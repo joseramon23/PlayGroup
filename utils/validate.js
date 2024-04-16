@@ -3,32 +3,6 @@ const KindergartenModel = require('../models/kindergarten.model')
 const User = new UserModel
 const Kindergarten = new KindergartenModel
 
-const validateUser = (user) => {
-    const data = ['name', 'email', 'password', 'passwordConfirm']
-
-    // Comprobar campos requeridos
-    const isEmpty = fieldIsEmpty(user, data)
-
-    if(!isEmpty.isValid) return isEmpty
-
-    // Email válido
-    const validateEmail = validateIsEmail(user.email)
-
-    if(!validateEmail.isValid) return validateEmail
-
-    // Comparar contraseñas
-    if(user.password !== user.passwordConfirm) {
-        return { isValid: false, message: 'Las contraseñas no coinciden' }
-    }
-
-    // Validación de contraseña
-    const validatePass = validatePassword(user.password)
-
-    if(!validatePass.isValid) return validatePass
-
-    return { isValid: true }
-}
-
 const validateKindergarten = async (kindergarten)  => {
     const data = ['name', 'address', 'phone', 'email', 'user_id']
 
@@ -53,24 +27,6 @@ const validateKindergarten = async (kindergarten)  => {
     if(!validateUser.isValid) return validateUser
 
     return { isValid: true, user: validateUser.user }
-}
-
-const validatePassword = (password) => {
-    const passRegex = /^(?=.*[A-Z])(?=.*\d{2,}).{8,}$/
-    if(!passRegex.test(password)) {
-        return { isValid: false, message: 'La contraseña debe tener una mayúscula, al menos 2 números y mínimo 8 caracteres' }
-    }
-
-    return { isValid: true }
-}
-
-const validateIsEmail = (email) => {
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
-    if(!emailRegex.test(email)) {
-        return { isValid: false, message: 'El email introducido no es válido'}
-    }
-
-    return { isValid: true }
 }
 
 const validatePhoneNumber = (phone) => {
@@ -98,9 +54,9 @@ const kindergartenExists = async (id) => {
     try {
         const kindergarten = await Kindergarten.getKindegarten(id)
 
-        if(kindergarten) return { isValid: true, data: kindergarten }
+        if(kindergarten) return true
     } catch (error) {
-        return { isValid: false, message: error.message }
+        return false
     }
 }
 
@@ -121,10 +77,7 @@ const fieldIsEmpty = (user, data) => {
 }
 
 module.exports = { 
-    validateUser,
-    validatePassword ,
     validateKindergarten,
-    validateIsEmail,
     userExists,
     kindergartenExists
 }
