@@ -12,8 +12,8 @@ const app = express()
 app.use(json())
 app.use(urlencoded({ extended: true }))
 
-app.use(userRouter)
-app.use(kindergartenRouter)
+app.use('/api', userRouter)
+app.use('/api', kindergartenRouter)
 
 const server = app.listen(process.env.PORT || 3000, () => {
     if (process.env.NODE_ENV !== 'test') {
