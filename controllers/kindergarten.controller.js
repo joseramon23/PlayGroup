@@ -1,15 +1,22 @@
+const KindergartenModel = require('../models/kindergarten.model.js')
+const UserModel = require('../models/user.model.js')
+
+const User = new UserModel
+const Kindergarten = new KindergartenModel
+
+const { validateKindergartenSchema, validatePartialKindergarten } = require('../schemas/kindergarten.js')
 const { errorMessage, unauthorizedMessage, validationError } = require('../utils/errorHandler.js')
 const { responseSuccessData, responseCreatedData } = require('../utils/responseHandler.js')
-const Kindergarten = require('../models/kindergarten.model.js')
-const UserModel = require('../models/user.model.js')
-const User = new UserModel
-const KindergartenModel = new Kindergarten
-
-const { validateKindergarten, kindergartenExists } = require('../utils/validate.js')
 
 const getAllKindergarten = async (req, res) => {
+    const { id, rol } = req.user
+
+    if (id !== Number(req.params.id) && rol !== 'webadmin') {
+        return res.status(401).json(unauthorizedMessage())
+    }
+
     try {
-        const kindergartens = await KindergartenModel.getAllKindergarten()
+        const kindergartens = await Kindergarten.getAll()
         res.status(200).json(responseSuccessData(kindergartens))
     } catch(error) {
         res.status(500).json(errorMessage(`Error al obtener las guarderias: ${error.message}`))
@@ -22,7 +29,7 @@ const getKindergarten = async (req, res) => {
     }
 
     try {
-        const kindergarten = await KindergartenModel.getKindegarten(req.params.id)
+        const kindergarten = await Kindergarten.getId(req.params.id)
         res.status(200).json(responseSuccessData(kindergarten))
     } catch(error) {
         res.status(500).json(errorMessage(`Error al obtener la guardería: ${error.message}`))
@@ -30,85 +37,52 @@ const getKindergarten = async (req, res) => {
 }
 
 const createKindergarten = async (req, res) => {
-    const { name, address, phone, email, user_id } = req.body
-    // Crear la data para insertar
-    const data = {
-        name: name,
-        address: address,
-        phone: phone,
-        email: email,
-        user_id: user_id
+    // validacion de los datos
+    const data = await validateKindergartenSchema(req.body)
+
+    if(!data.success) {
+        return res.status(400).json(validationError(JSON.parse(data.error.message)))
     }
 
-    const validation = await validateKindergarten(data)
-    
-    // Comprobar si la validación es correcta
-    if(!validation.isValid) {
-        return res.status(400).json(validationError(validation.message))
-    }
-    
-    // Insertar la nueva guarderia
-    try {
-        const kindergarten = await KindergartenModel.createKindergarten(data)
+    try{
+        // Obtener los datos del usuario que crea la guarderia
+        const { id } = req.user
+        const user = await User.getUser(id)
 
-        // Data para actualizar la guarderia del usuario
-        const dataUser = {
-            name: validation.user.name,
-            email: validation.user.email,
-            kindergarten_id: kindergarten.insertId,
-            password: validation.user.password,
-            rol: validation.user.rol,
-            image: validation.user.image,
-            updated_at: new Date()
-        }
+        // Crear la nueva guarderia
+        data.data.user_id = id
+        const kindergarten = await Kindergarten.create(data.data)
         
-        await User.updateUser(user_id, dataUser)
+        user.kindergarten_id = kindergarten.insertId
+        await User.updateUser(id, user)
 
-        res.status(201).json(responseCreatedData('Se ha creado correctamente', kindergarten.insertId))
+        res.status(201).json(responseCreatedData('Se ha creado correctamente', { kindergarten: kindergarten.insertId, userId: user.id}))
     } catch (error) {
         res.status(500).json(errorMessage(`Error al crear la guardería: ${error.message}`))
     }
 }
 
+// TODO: validacion con zod
 const updateKindergarten = async (req, res) => {
-    const { name, address, phone, email, userId } = req.body
-
-    if (req.user.kindergarten_id !== req.params.id) {
+    const updateKg = await validatePartialKindergarten(req.body)
+    
+    if (req.user.kindergarten_id !== Number(req.params.id)) {
         return res.status(401).json(unauthorizedMessage('No estas autorizado para acceder a esta guardería'))
     }
-
-    const kindergarten = await kindergartenExists(req.params.id)
 
     if (Object.keys(req.body).length === 0) {
         return res.status(400).json(validationError('El cuerpo de la solicitud está vacío'))
     }
 
-    if (name === "" || address === "" || phone === "" || email === "" || userId === "") {
-        return res.status(400).json(validationError('Las propiedades del objeto no pueden estar vacías'))
+    if(!updateKg.success) {
+        return res.status(400).json(validationError(JSON.parse(updateKg.error.message)))
     }
 
-    if(!kindergarten.isValid) { 
-        return res.status(404).json(validationError(kindergarten.message, 404, 'Uknown'))
-    }
-
-    const data = {
-        name: name ? name : kindergarten.data.name,
-        address: address ? address : kindergarten.data.address,
-        phone: phone ? phone : kindergarten.data.phone,
-        email: email ? email : kindergarten.data.email,
-        user_id: userId ? userId : kindergarten.data.user_id
-    }
-
-    const validation = await validateKindergarten(data)
-    
-    // Comprobar si la validación es correcta
-    if(!validation.isValid) {
-        return res.status(400).json(validationError(validation.message))
-    }
+    console.log(updateKg.data)
 
     try {
-        await KindergartenModel.updateKindergarten(req.params.id, data)
-        res.status(200).json(responseSuccessData(data))
+        const result = await Kindergarten.update(req.params.id, updateKg.data)
+        res.status(200).json(responseSuccessData(result))
     } catch(error) {
         res.status(500).json(errorMessage(`Error al actualizar la guardería: ${error.message}`))       
     }
@@ -116,7 +90,7 @@ const updateKindergarten = async (req, res) => {
 
 const deleteKindergarten = async (req, res) => {  
     try {
-        const deleteKindergarten = await KindergartenModel.deleteKindergarten(req.params.id)
+        const deleteKindergarten = await Kindergarten.delete(req.params.id)
         if(deleteKindergarten) {
             res.status(200).json(responseSuccessData('Se ha borrado correctamente'))
         }

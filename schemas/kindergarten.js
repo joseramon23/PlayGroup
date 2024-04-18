@@ -1,5 +1,4 @@
 const z = require('zod')
-const { userExists } = require('../utils/validate')
 
 const phoneRegex = /^\d{9}$/
 
@@ -7,7 +6,7 @@ const kindergartenSchema = z.object({
     name: z.string({
         invalid_type_error: 'El nombre debe ser un string',
         required_error: 'El nombre es requerido'
-    }).max(250),
+    }).min(1, 'El nombre está vacío').max(250),
     address: z.string().optional(),
     phone: z.number({
         invalid_type_error: 'El teléfono debe ser un número'
@@ -19,15 +18,18 @@ const kindergartenSchema = z.object({
         required_error: 'El email es requerido',
         invalid_string_error: 'El email no es válido'
     }),
-    user_id: z.number().refine(async (id) => await userExists(id), {
-        message: 'El usuario no existe en la base de datos'
-    })
+    user_id: z.number().optional()
 })
 
 const validateKindergartenSchema = (input) => {
     return kindergartenSchema.safeParseAsync(input)
 }
 
+const validatePartialKindergarten = (input) => {
+    return kindergartenSchema.partial().safeParseAsync(input)
+}
+
 module.exports = {
-    validateKindergartenSchema
+    validateKindergartenSchema,
+    validatePartialKindergarten
 }
