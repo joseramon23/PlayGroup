@@ -1,15 +1,15 @@
-const fs = require('node:fs')
-const bcrypt = require('bcrypt')
-const jwt = require('jsonwebtoken')
+import fs from 'node:fs'
+import bcrypt from 'bcrypt'
+import jwt from 'jsonwebtoken'
 
-const UserModel = require('../models/user.model.js')
+import UserModel from '../models/user.model.js'
 const User = new UserModel
 
-const { validateUserSchema, validatePartialUser, validatePassUpdate } = require('../schemas/users.js')
-const { unauthorizedMessage, errorMessage, validationError } = require('../utils/errorHandler.js')
-const { responseSuccessData, responseCreatedData } = require('../utils/responseHandler.js')
+import { validateUserSchema, validatePartialUser, validatePassUpdate } from '../schemas/users.js'
+import { unauthorizedMessage, errorMessage, validationError } from '../utils/errorHandler.js'
+import { responseSuccessData, responseCreatedData } from '../utils/responseHandler.js'
 
-const getAllUsers = async (req, res) => {
+export const getAllUsers = async (req, res) => {
     try {
         const users = await User.getAll()
         res.status(200).json(responseCreatedData('Petición aceptada', users, 'Accepted'))
@@ -18,7 +18,7 @@ const getAllUsers = async (req, res) => {
     }
 }
 
-const getUser = async (req, res) => {
+export const getUser = async (req, res) => {
     const { id, rol } = req.user
 
     if (id !== Number(req.params.id) && rol !== 'webadmin') {
@@ -33,7 +33,7 @@ const getUser = async (req, res) => {
     }
 }
 
-const createUser = async (req, res) => {
+export const createUser = async (req, res) => {
     // validación del los datos
     const data = await validateUserSchema(req.body)
     const image = req.file?.filename
@@ -45,6 +45,8 @@ const createUser = async (req, res) => {
     if(data.data.password !== data.data.passwordConfirm) return res.status(400).json(validationError('Las contraseñas no coinciden'))
 
     const { passwordConfirm, ...userData } = data.data
+    
+    if(image) userData.image = image
 
     // encriptar contraseña
     const encryptPass = bcrypt.hashSync(userData.password, 10)
@@ -66,7 +68,7 @@ const createUser = async (req, res) => {
     }
 }
 
-const updateUser = async (req, res) => {
+export const updateUser = async (req, res) => {
     const updateUser = await validatePartialUser(req.body)
     const updateImage = req.file?.filename
     const { id } = req.user
@@ -98,7 +100,7 @@ const updateUser = async (req, res) => {
     }
 }
 
-const deleteUser = async (req, res) => {
+export const deleteUser = async (req, res) => {
     const userId = req.params.id
     const { id } = req.user
 
@@ -117,7 +119,7 @@ const deleteUser = async (req, res) => {
     }
 }
 
-const userUpdatePassword = async (req, res) => {
+export const userUpdatePassword = async (req, res) => {
     const { id } = req.user
 
     if (id !== Number(req.params.id)) {
@@ -148,7 +150,7 @@ const userUpdatePassword = async (req, res) => {
     }
 }
 
-const loginUser = async (req, res) => {
+export const loginUser = async (req, res) => {
     const { email, password } = req.body
 
     if (Object.keys(req.body).length === 0) {
@@ -175,14 +177,4 @@ const loginUser = async (req, res) => {
     } catch (error) {
         res.status(500).json(errorMessage(`Error al iniciar sesión: ${error.message}`))
     }
-}
-
-module.exports = {
-    getAllUsers,
-    getUser,
-    createUser,
-    updateUser,
-    deleteUser,
-    userUpdatePassword,
-    loginUser
 }

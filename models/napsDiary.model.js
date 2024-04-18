@@ -1,4 +1,4 @@
-const { pool } = require('../config/db_connect')
+import { pool } from '../config/db_connect.js'
 
 class napsDiary {
     constructor() {
@@ -40,4 +40,4 @@ class napsDiary {
     }
 }
 
-module.exports = napsDiary
+export default napsDiary

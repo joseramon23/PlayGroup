@@ -1,5 +1,4 @@
-
-const unauthorizedMessage = (message = 'No estas autorizado para hacer esta acción') => {
+export const unauthorizedMessage = (message = 'No estas autorizado para hacer esta acción') => {
     return {
         statusCode: 401,
         statusMessage: 'Unauthorized',
@@ -7,7 +6,7 @@ const unauthorizedMessage = (message = 'No estas autorizado para hacer esta acci
     } 
 }
 
-const validationError = (message, statusCode = 400, statusMessage = 'Bad request') => {
+export const validationError = (message, statusCode = 400, statusMessage = 'Bad request') => {
     return {
         statusCode: statusCode,
         statusMessage: statusMessage,
@@ -15,17 +14,10 @@ const validationError = (message, statusCode = 400, statusMessage = 'Bad request
     }
 }
 
-const errorMessage = (message) => {
+export const errorMessage = (message) => {
     return {
         statusCode: 500,
         statusMessage: 'Error',
         message: message
     }
-}
-
-
-module.exports = {
-    unauthorizedMessage,
-    errorMessage,
-    validationError
 }

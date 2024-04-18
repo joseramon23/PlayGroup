@@ -1,5 +1,4 @@
-const path = require('node:path')
-const { pool } = require(path.resolve(__dirname, '../config/db_connect'))
+import { pool } from '../config/db_connect.js'
 class User {
     constructor() {
         this.pool = pool
@@ -59,4 +58,4 @@ class User {
     }
 }
 
-module.exports = User
+export default User

@@ -1,14 +1,14 @@
-const KindergartenModel = require('../models/kindergarten.model.js')
-const UserModel = require('../models/user.model.js')
+import KindergartenModel from '../models/kindergarten.model.js'
+import UserModel from '../models/user.model.js'
 
 const User = new UserModel
 const Kindergarten = new KindergartenModel
 
-const { validateKindergartenSchema, validatePartialKindergarten } = require('../schemas/kindergarten.js')
-const { errorMessage, unauthorizedMessage, validationError } = require('../utils/errorHandler.js')
-const { responseSuccessData, responseCreatedData } = require('../utils/responseHandler.js')
+import { validateKindergartenSchema, validatePartialKindergarten } from '../schemas/kindergarten.js'
+import { errorMessage, unauthorizedMessage, validationError } from '../utils/errorHandler.js'
+import { responseSuccessData, responseCreatedData } from '../utils/responseHandler.js'
 
-const getAllKindergarten = async (req, res) => {
+export const getAllKindergarten = async (req, res) => {
     const { id, rol } = req.user
 
     if (id !== Number(req.params.id) && rol !== 'webadmin') {
@@ -23,7 +23,7 @@ const getAllKindergarten = async (req, res) => {
     }
 }
 
-const getKindergarten = async (req, res) => {
+export const getKindergarten = async (req, res) => {
     if (req.user.rol !== 'webadmin' && req.user.kindergarten_id !== req.params.id) {
         return res.status(401).json(unauthorizedMessage('No estas autorizado para acceder a esta guardería'))
     }
@@ -36,7 +36,7 @@ const getKindergarten = async (req, res) => {
     }
 }
 
-const createKindergarten = async (req, res) => {
+export const createKindergarten = async (req, res) => {
     // validacion de los datos
     const data = await validateKindergartenSchema(req.body)
 
@@ -63,7 +63,7 @@ const createKindergarten = async (req, res) => {
 }
 
 // TODO: validacion con zod
-const updateKindergarten = async (req, res) => {
+export const updateKindergarten = async (req, res) => {
     const updateKg = await validatePartialKindergarten(req.body)
     
     if (req.user.kindergarten_id !== Number(req.params.id)) {
@@ -88,7 +88,7 @@ const updateKindergarten = async (req, res) => {
     }
 }
 
-const deleteKindergarten = async (req, res) => {  
+export const deleteKindergarten = async (req, res) => {  
     try {
         const deleteKindergarten = await Kindergarten.delete(req.params.id)
         if(deleteKindergarten) {
@@ -97,12 +97,4 @@ const deleteKindergarten = async (req, res) => {
     } catch(error) {
         res.status(500).json(errorMessage(error.message))
     }
-}
-
-module.exports = {
-    getAllKindergarten,
-    getKindergarten,
-    createKindergarten,
-    updateKindergarten,
-    deleteKindergarten
 }

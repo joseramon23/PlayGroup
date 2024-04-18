@@ -1,15 +1,15 @@
-const express = require('express')
-const kindergartenController = require('../controllers/kindergarten.controller')
-const authToken = require('../middlewares/authToken')
-const authAdmin = require('../middlewares/authAdmin')
+import { Router } from 'express'
+import { getAllKindergarten, createKindergarten, getKindergarten, updateKindergarten, deleteKindergarten } from '../controllers/kindergarten.controller.js'
+import { authToken } from '../middlewares/authToken.js'
+import { authAdmin } from '../middlewares/authAdmin.js'
 
-const router = express.Router()
+const router = Router()
 
-router.get('/kindergarten', authToken, authAdmin, kindergartenController.getAllKindergarten)
-router.post('/kindergarten', authToken, kindergartenController.createKindergarten)
+router.get('/kindergarten', authToken, authAdmin, getAllKindergarten)
+router.post('/kindergarten', authToken, createKindergarten)
 
-router.get('/kindergarten/:id', authToken, kindergartenController.getKindergarten)
-router.put('/kindergarten/:id', authToken, kindergartenController.updateKindergarten)
-router.delete('/kindergarten/:id', authToken, authAdmin, kindergartenController.deleteKindergarten)
+router.get('/kindergarten/:id', authToken, getKindergarten)
+router.put('/kindergarten/:id', authToken, updateKindergarten)
+router.delete('/kindergarten/:id', authToken, authAdmin, deleteKindergarten)
 
-module.exports = router
+export default router

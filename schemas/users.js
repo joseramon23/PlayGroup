@@ -1,5 +1,5 @@
-const z = require('zod')
-const { kindergartenExists } = require('../utils/validate')
+import z from 'zod'
+import { kindergartenExists } from '../utils/validate.js'
 
 const passRegex = /^(?=.*[A-Z])(?=.*\d{2,}).{8,}$/
 
@@ -20,8 +20,7 @@ const userSchema = z.object({
         message: 'La contraseña debe contener al menos una mayúscula y dos números'
     }),
     passwordConfirm: z.string(),
-    rol: z.string(
-        z.enum(['profesor', 'director']),
+    rol: z.string((['profesor', 'director']),
         {
             invalid_type_error: 'El dato introducido no es válido'
         }
@@ -35,20 +34,14 @@ const passwordSchema = z.object({
     })
 })
 
-const validateUserSchema = (input) => {
+export const validateUserSchema = (input) => {
     return userSchema.safeParseAsync(input)
 }
 
-const validatePartialUser = (input) => {
+export const validatePartialUser = (input) => {
     return userSchema.partial().safeParseAsync(input)
 }
 
-const validatePassUpdate = (input) => {
+export const validatePassUpdate = (input) => {
     return passwordSchema.safeParse(input)
 } 
-
-module.exports = {
-    validateUserSchema,
-    validatePartialUser,
-    validatePassUpdate
-}

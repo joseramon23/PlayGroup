@@ -1,4 +1,4 @@
-const z = require('zod')
+import z from 'zod'
 
 const phoneRegex = /^\d{9}$/
 
@@ -21,15 +21,10 @@ const kindergartenSchema = z.object({
     user_id: z.number().optional()
 })
 
-const validateKindergartenSchema = (input) => {
+export const validateKindergartenSchema = (input) => {
     return kindergartenSchema.safeParseAsync(input)
 }
 
-const validatePartialKindergarten = (input) => {
+export const validatePartialKindergarten = (input) => {
     return kindergartenSchema.partial().safeParseAsync(input)
-}
-
-module.exports = {
-    validateKindergartenSchema,
-    validatePartialKindergarten
 }

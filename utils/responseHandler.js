@@ -1,4 +1,4 @@
-const responseSuccessData = (message, statusMessage = 'Accepted', statusCode = 200) => {
+export const responseSuccessData = (message, statusMessage = 'Accepted', statusCode = 200) => {
     return {
         statusCode: statusCode,
         statusMessage: statusMessage,
@@ -6,16 +6,11 @@ const responseSuccessData = (message, statusMessage = 'Accepted', statusCode = 2
     }
 }
 
-const responseCreatedData = ( message, data, statusMessage = 'Created', statusCode = 200) => {
+export const responseCreatedData = ( message, data, statusMessage = 'Created', statusCode = 200) => {
     return {
         statusCode: statusCode,
         statusMessage: statusMessage,
         message: message,
         data: data
     }
-}
-
-module.exports = { 
-    responseSuccessData,
-    responseCreatedData
 }

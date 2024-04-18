@@ -1,4 +1,4 @@
-const { pool } = require('../config/db_connect')
+import { pool } from '../config/db_connect.js'
 
 class Kindergarten {
     constructor() {
@@ -53,4 +53,4 @@ class Kindergarten {
 
 }
 
-module.exports = Kindergarten
+export default Kindergarten

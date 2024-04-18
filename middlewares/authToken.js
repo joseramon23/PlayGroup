@@ -1,7 +1,7 @@
-const jwt = require('jsonwebtoken')
-const { unauthorizedMessage } = require('../utils/errorHandler')
+import jwt from 'jsonwebtoken'
+import { unauthorizedMessage } from '../utils/errorHandler.js'
 
-const authToken = (req, res, next) => {
+export const authToken = (req, res, next) => {
   const token = req.headers.authorization
   if(!token) return res.status(401).json(unauthorizedMessage('Se necesita token para acceder'))
     
@@ -12,5 +12,3 @@ const authToken = (req, res, next) => {
     next()
   })
 }
-
-module.exports = authToken

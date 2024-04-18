@@ -1,4 +1,4 @@
-const { pool } = require('../config/db_connect')
+import { pool } from '../config/db_connect.js'
 
 class Student {
     constructor() {
@@ -58,4 +58,4 @@ class Student {
     }
 }
 
-module.exports = Student
+export default Student

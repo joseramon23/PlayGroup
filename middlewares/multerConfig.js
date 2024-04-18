@@ -1,8 +1,8 @@
-const multer = require('multer')
-const formattedDate = require('../utils/formatDate')
+import multer, { diskStorage } from 'multer'
+import { formattedDate } from '../utils/formatDate.js'
 const date = formattedDate.split('/').join('')
 
-const storage = multer.diskStorage({
+const storage = diskStorage({
     destination: (req, file, cb) => {
         
         if(req.route.path === '/users' || req.route.path === '/users/:id'){
@@ -22,4 +22,4 @@ const storage = multer.diskStorage({
 
 const upload = multer({ storage })
 
-module.exports = upload
+export default upload

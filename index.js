@@ -1,16 +1,17 @@
-const express = require('express')
-const { config } = require('dotenv')
-const { json, urlencoded } = require('body-parser')
-const PORT = process.env.PORT ?? 3000
+import express from 'express'
+import { config } from 'dotenv'
+import bodyparser from 'body-parser'
 
-const userRouter = require('./routes/user.routes')
-const kindergartenRouter = require('./routes/kindergarten.routes')
+import userRouter from './routes/user.routes.js'
+import kindergartenRouter from './routes/kindergarten.routes.js'
+
+const PORT = process.env.PORT ?? 3000
 config()
 
 const app = express()
 
-app.use(json())
-app.use(urlencoded({ extended: true }))
+app.use(bodyparser.json())
+app.use(bodyparser.urlencoded({ extended: true }))
 
 app.use('/api', userRouter)
 app.use('/api', kindergartenRouter)
@@ -21,4 +22,4 @@ const server = app.listen(PORT, () => {
     }
 })
 
-module.exports = { app, server }
+export default { app, server }
