@@ -5,8 +5,8 @@ class User {
         this.pool = pool
     }
 
-    async getAllUsers() {
-        const sql = 'SELECT name, email, kindergarten_id, rol, image FROM users'
+    async getAll() {
+        const sql = 'SELECT id, name, email, kindergarten_id, rol, image FROM users'
         const [result] = await this.pool.query(sql)
         
         if(result.length <= 0)  throw new Error("No se han encontrado usuarios")
@@ -14,15 +14,15 @@ class User {
         return result
     }
 
-    async getUser(id) {
-        const sql = 'SELECT name, email, kindergarten_id, password, rol, image FROM users WHERE id = ?'
+    async getId(id) {
+        const sql = 'SELECT id, name, email, kindergarten_id, password, rol, image FROM users WHERE id = ?'
         const [result] = await this.pool.query(sql, [id])
 
         if (result.length <= 0) throw new Error("No se ha encontrado el usuario seleccionado")
         return result[0]
     }
 
-    async createUser(data) {
+    async create(data) {
         const { name, email, kindergarten_id, password, rol, image } = data
         const sql = 'INSERT INTO users (name, email, kindergarten_id, password, rol, image) VALUES (?, ?, ?, ?, ?, ?)'
         const [result] = await this.pool.query(sql, [name, email, kindergarten_id, password, rol, image])
@@ -31,16 +31,18 @@ class User {
         return result
     }
 
-    async updateUser(id, data) {
-        const { name, email, password, kindergarten_id, rol, image, updated_at } = data
-        const sql = 'UPDATE users SET name = ?, email = ?, kindergarten_id = ?, password = ?, rol = ?, image = ?, updated_at = ? WHERE id = ?'
-        const [result] = await this.pool.query(sql, [name, email, kindergarten_id, password, rol, image, updated_at, id])
+    async update(id, data) {
+        const fields = Object.keys(data).map(field => `${field} = ?`).join(', ')
+        const values = Object.values(data)
+
+        const sql = `UPDATE users SET ${fields} WHERE id = ?`
+        const [result] = await this.pool.query(sql, [...values, id])
 
         if(result.affectedRows <= 0) throw new Error("Ha ocurrido un error al actualizar el usuario")
         return result
     }
 
-    async deleteUser(id) {
+    async delete(id) {
         const sql = "DELETE FROM users WHERE id = ?"
         const [result] = await this.pool.query(sql, [id])
 
@@ -48,7 +50,7 @@ class User {
         return result
     }
 
-    async loginUser(email) {
+    async login(email) {
         const sql = 'SELECT id, name, email, kindergarten_id, password, rol, image FROM users WHERE email = ?'
         const [result] = await this.pool.query(sql, [email])
 
