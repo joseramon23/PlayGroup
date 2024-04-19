@@ -8,6 +8,12 @@ import { validateKindergartenSchema, validatePartialKindergarten } from '../sche
 import { errorMessage, unauthorizedMessage, validationError } from '../utils/errorHandler.js'
 import { responseSuccessData, responseCreatedData } from '../utils/responseHandler.js'
 
+/**
+ * Get all kindergartens.
+ * @param {Object} req - The request object.
+ * @param {Object} res - The response object.
+ * @returns {Object} - The response object with the list of kindergartens.
+ */
 export const getAllKindergarten = async (req, res) => {
     const { id, rol } = req.user
 
@@ -23,6 +29,12 @@ export const getAllKindergarten = async (req, res) => {
     }
 }
 
+/**
+ * Get a specific kindergarten by ID.
+ * @param {Object} req - The request object.
+ * @param {Object} res - The response object.
+ * @returns {Object} - The response object with the kindergarten details.
+ */
 export const getKindergarten = async (req, res) => {
     if (req.user.rol !== 'webadmin' && req.user.kindergarten_id !== req.params.id) {
         return res.status(401).json(unauthorizedMessage('No estas autorizado para acceder a esta guardería'))
@@ -36,6 +48,12 @@ export const getKindergarten = async (req, res) => {
     }
 }
 
+/**
+ * Create a new kindergarten.
+ * @param {Object} req - The request object.
+ * @param {Object} res - The response object.
+ * @returns {Object} - The response object with the created kindergarten details.
+ */
 export const createKindergarten = async (req, res) => {
     // validacion de los datos
     const data = await validateKindergartenSchema(req.body)
@@ -63,6 +81,13 @@ export const createKindergarten = async (req, res) => {
 }
 
 // TODO: validacion con zod
+
+/**
+ * Update a kindergarten by ID.
+ * @param {Object} req - The request object.
+ * @param {Object} res - The response object.
+ * @returns {Object} - The response object with the updated kindergarten details.
+ */
 export const updateKindergarten = async (req, res) => {
     const updateKg = await validatePartialKindergarten(req.body)
     
@@ -88,6 +113,12 @@ export const updateKindergarten = async (req, res) => {
     }
 }
 
+/**
+ * Delete a kindergarten by ID.
+ * @param {Object} req - The request object.
+ * @param {Object} res - The response object.
+ * @returns {Object} - The response object with the success message.
+ */
 export const deleteKindergarten = async (req, res) => {  
     try {
         const deleteKindergarten = await Kindergarten.delete(req.params.id)

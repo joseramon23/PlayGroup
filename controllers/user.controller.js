@@ -9,6 +9,13 @@ import { validateUserSchema, validatePartialUser, validatePassUpdate } from '../
 import { unauthorizedMessage, errorMessage, validationError } from '../utils/errorHandler.js'
 import { responseSuccessData, responseCreatedData } from '../utils/responseHandler.js'
 
+/**
+ * Retrieves all users.
+ *
+ * @param {Object} req - The request object.
+ * @param {Object} res - The response object.
+ * @returns {Promise<void>} - A promise that resolves when the operation is complete.
+ */
 export const getAllUsers = async (req, res) => {
     try {
         const users = await User.getAll()
@@ -18,6 +25,13 @@ export const getAllUsers = async (req, res) => {
     }
 }
 
+/**
+ * Retrieves a user by ID.
+ *
+ * @param {Object} req - The request object.
+ * @param {Object} res - The response object.
+ * @returns {Promise<void>} - A promise that resolves when the user is retrieved.
+ */
 export const getUser = async (req, res) => {
     const { id, rol } = req.user
 
@@ -33,6 +47,13 @@ export const getUser = async (req, res) => {
     }
 }
 
+/**
+ * Creates a new user.
+ *
+ * @param {Object} req - The request object.
+ * @param {Object} res - The response object.
+ * @returns {Promise<void>} - A promise that resolves when the user is created.
+ */
 export const createUser = async (req, res) => {
     // validación del los datos
     const data = await validateUserSchema(req.body)
@@ -68,6 +89,12 @@ export const createUser = async (req, res) => {
     }
 }
 
+/**
+ * Updates a user.
+ * @param {Object} req - The request object.
+ * @param {Object} res - The response object.
+ * @returns {Promise<void>} - A promise that resolves when the user is updated.
+ */
 export const updateUser = async (req, res) => {
     const updateUser = await validatePartialUser(req.body)
     const updateImage = req.file?.filename
@@ -100,6 +127,12 @@ export const updateUser = async (req, res) => {
     }
 }
 
+/**
+ * Deletes a user from the database.
+ * @param {Object} req - The request object.
+ * @param {Object} res - The response object.
+ * @returns {Promise<void>} - A promise that resolves when the user is deleted.
+ */
 export const deleteUser = async (req, res) => {
     const userId = req.params.id
     const { id } = req.user
@@ -119,6 +152,13 @@ export const deleteUser = async (req, res) => {
     }
 }
 
+/**
+ * Updates the password for a user.
+ *
+ * @param {Object} req - The request object.
+ * @param {Object} res - The response object.
+ * @returns {Promise<void>} - A promise that resolves when the password is updated.
+ */
 export const userUpdatePassword = async (req, res) => {
     const { id } = req.user
 
@@ -150,6 +190,13 @@ export const userUpdatePassword = async (req, res) => {
     }
 }
 
+/**
+ * Logs in a user.
+ *
+ * @param {Object} req - The request object.
+ * @param {Object} res - The response object.
+ * @returns {Object} The response object.
+ */
 export const loginUser = async (req, res) => {
     const { email, password } = req.body
 
