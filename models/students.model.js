@@ -1,11 +1,11 @@
 import { pool } from '../config/db_connect.js'
 
-class Student {
+export class Student {
     constructor() {
         this.pool = pool
     }
 
-    async getAllStudents() {
+    async getAll() {
         const sql = 'SELECT name, image, birthdate, kindergarten_id, created_at, updated_at FROM students'
         const [result] = await this.pool.query(sql)
 
@@ -13,7 +13,7 @@ class Student {
         return result 
     }
 
-    async getKindergartenStudents(id) {
+    async getByKindergarten(id) {
         const sql = 'SELECT name, image, birthdate, created_at, updated_at FROM students WHERE kindergarten_id = ?'
         const [result] = await this.pool.query(sql, [id])
 
@@ -21,7 +21,7 @@ class Student {
         return result 
     }
 
-    async getStudent(id) {
+    async getId(id) {
         const sql = 'SELECT name, image, birthdate, created_at, updated_at FROM students WHERE id = ?'
         const [result] = await this.pool.query(sql, [id])
 
@@ -29,27 +29,28 @@ class Student {
         return result[0]
     }
 
-    async createStudent(data) {
-        const { name, image, birthdate, kindergarten_id, created_at, updated_at } = data
-        const sql = `INSERT INTO students (name, image, birthdate, kindergarten_id, created_at, updated_at) 
+    async create(data) {
+        const { name, image, birthdate, kindergarten_id } = data
+        const sql = `INSERT INTO students (name, birthdate, kindergarten_id, image) 
                     VALUES (?, ?, ?, ? ,? ,?)`
-        const [result] = await this.pool.query(sql, [name, image, birthdate, kindergarten_id, created_at, updated_at])
+        const [result] = await this.pool.query(sql, [name, birthdate, kindergarten_id, image])
 
         if(result.affectedRows <= 0) throw new Error("Ha ocurrido un error al crear")
         return result
     }
 
-    async updateStudent(id, data) {
-        const { name, image, birthdate, kindergarten_id, created_at, updated_at } = data
-        const sql = `UPDATE students SET name = ?, image = ?, birthdate = ?, kindergarten_id = ?, created_at = ?, updated_at = ?
-                    WHERE id = ?`
-        const [reult] = await this.pool.query(sql, [name, image, birthdate, kindergarten_id, created_at, updated_at, id])
+    async update(id, data) {
+        const fields = Object.keys(data).map(field => `${field} = ?`).join(', ')
+        const values = Object.values(data)
+
+        const sql = `UPDATE students SET ${fields} WHERE id = ?`
+        const [result] = await this.pool.query(sql, [...values, id])
 
         if(result.affectedRows <= 0) throw new Error('Ha ocurrido un error al actualizar el alumno')
         return result
     }
 
-    async deleteStudent(id) {
+    async delete(id) {
         const sql = "DELETE FROM students WHERE id = ?"
         const [result] = await this.pool.query(sql, id)
 
@@ -57,5 +58,3 @@ class Student {
         return result
     }
 }
-
-export default Student
