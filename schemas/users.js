@@ -14,7 +14,7 @@ const userSchema = z.object({
         invalid_string_error: 'El email no es válido'
     }),
     kindergarten_id: z.number().refine(async (id) => await kindergartenExists(id), {
-        message: 'El kindergarten no existe en la base de datos'
+        message: 'La guardería no existe en la base de datos'
     }).optional(),
     password: z.string().refine(password => passRegex.test(password), {
         message: 'La contraseña debe contener al menos una mayúscula y dos números'
