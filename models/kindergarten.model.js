@@ -1,6 +1,6 @@
 import { pool } from '../config/db_connect.js'
 
-class Kindergarten {
+export class Kindergarten {
     constructor() {
         this.pool = pool
     }
@@ -52,5 +52,3 @@ class Kindergarten {
     }
 
 }
-
-export default Kindergarten

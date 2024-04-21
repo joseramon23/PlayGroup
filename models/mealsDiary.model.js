@@ -1,6 +1,6 @@
 import { pool } from '../config/db_connect.js'
 
-class mealsDiary {
+export class mealsDiary {
     constructor() {
         this.pool = pool
     }
@@ -40,5 +40,3 @@ class mealsDiary {
         return result
     }
 }
-
-export default mealsDiary

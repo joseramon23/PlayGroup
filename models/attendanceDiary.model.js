@@ -1,11 +1,11 @@
 import { pool } from '../config/db_connect.js'
 
-class AttendanceDiary {
+export class AttendanceDiary {
     constructor() {
         this.pool = pool
     }
 
-    async getAttendanceStudent(id) {
+    async getAllByStudent(id) {
         const sql = `SELECT student_id, entrance_time, exit_time, date WHERE student_id = ?`
         const [result] = await this.pool.query(sql, [id])
 
@@ -21,7 +21,7 @@ class AttendanceDiary {
         return result
     }
 
-    async setAttendanceEntrance(data) {
+    async setEntrance(data) {
         const { student_id, entrance, date } = data
         const sql = `INSERT INTO attendance_diary (student_id, entrance_time, exit_time date) VALUES (?, ?, null, ?)`
         const [result] = await this.pool.query(sql, [student_id, entrance, date])
@@ -30,7 +30,7 @@ class AttendanceDiary {
         return result
     }
 
-    async setAttendanceExit(id, data) {
+    async setExit(id, data) {
         const { exit, date } = data
         const sql = `UPDATE attendance_diary SET exit_time = ? WHERE student_id = ? AND date = ?`
         const [result] = await this.pool.query(sql, [exit, id, date])
@@ -39,16 +39,18 @@ class AttendanceDiary {
         return result
     }
 
-    async updateAttendance(id, data) {
-        const { student_id, entrance, exit, date } = data
-        const sql = `UPDATE attendance_diary SET student_id = ?, entrance_time = ?, exit_time = ?, date = ? WHERE id = ?`
-        const [result] = await this.pool.query(sql, [student_id, entrance, exit, date, id])
+    async update(id, data) {
+        const fields = Object.keys(data).map(field => `${field} = ?`).join(', ')
+        const values = Object.values(data)
+
+        const sql = `UPDATE attendace_diary SET ${fields} WHERE id = ?`
+        const [result] = await this.pool.query(sql, [...values, id])
 
         if(result.affectedRows <= 0) throw new Error('No se ha podido actualizar la asistencia del alumno')
         return result
     }
 
-    async deleteAttendance(id) {
+    async delete(id) {
         const sql = `DELETE FROM attendance_diary WHERE id = ?`
         const [result] = await this.pool.query(sql, [id])
         
@@ -56,5 +58,3 @@ class AttendanceDiary {
         return result
     }
 }
-
-export default AttendanceDiary
