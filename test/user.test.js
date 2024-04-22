@@ -1,6 +1,6 @@
 import request from 'supertest'
-import { testServer } from "../utils/testServer.js"
-import { userRouter } from "../routes/user.routes.js"
+import { testServer } from '../utils/testServer.js'
+import { userRouter } from '../routes/user.routes.js'
 import { pool } from '../config/db_connect.js'
 
 let userTest = {
@@ -27,10 +27,14 @@ describe('GET /users', () => {
   it('Deberia devolver un unico usuario', async () => {
     const app = testServer(userRouter)
     const response = await request(app)
-      .get('/api/users/9')
+      .get('/api/users/1')
       .set('Authorization', process.env.TOKEN_ADMIN_TEST)
 
       expect(response.statusCode).toBe(200)
+      expect(response.body).toHaveProperty('success', true)
+      expect(response.body).toHaveProperty('statusCode', 200)
+      expect(response.body).toHaveProperty('statusMessage', 'Accepted')
+      expect(response.body).toHaveProperty('data')
   }) 
 })
 
@@ -41,14 +45,14 @@ describe('POST /users', () => {
       .post('/api/users')
       .send(userTest)
 
-    userTest.id = response.body.data.id
+    userTest.id = response.body.data.user.id
     
     expect(response.statusCode).toBe(201)
     expect(response.body).toHaveProperty('success', true)
     expect(response.body).toHaveProperty('statusCode', 201)
     expect(response.body).toHaveProperty('statusMessage', 'Created')
     expect(response.body).toHaveProperty('data')
-    expect(response.body.data).toHaveProperty('id')
+    expect(response.body.data).toHaveProperty('user')
     expect(response.body.data).toHaveProperty('token')
   })
 
