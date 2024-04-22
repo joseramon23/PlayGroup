@@ -6,7 +6,6 @@ import User from '../models/user.model.js'
 
 import { validateUserSchema, validatePartialUser, validatePassUpdate } from '../schemas/users.js'
 import { unauthorizedMessage, errorMessage, validationError } from '../utils/errorHandler.js'
-import { responseSuccessData, responseCreatedData } from '../utils/responseHandler.js'
 
 /**
  * Retrieves all users.
@@ -45,7 +44,12 @@ export const getUser = async (req, res) => {
 
     try {
         const user = await User.getId(req.params.id)
-        res.status(200).json(responseCreatedData('Petición aceptada', user, 'Accepted'))
+        res.status(200).json({
+            success: true,
+            statusCode: 200,
+            statusMessage: 'Accepted',
+            data: user
+        })
     } catch (error) {
         res.status(500).json(errorMessage(error.message))
     }
@@ -81,7 +85,7 @@ export const createUser = async (req, res) => {
     try {
         const user = await User.create(userData)
         const token = jwt.sign(
-            { id: user.insertId, kindergarten_id: user.kindergarten_id, rol: user.rol }, 
+            { id: user.id, kindergarten_id: user.kindergarten_id, rol: user.rol }, 
             process.env.JWT_SECRET,
             { expiresIn: '1d'}
         ) // Crear token de autenticación
@@ -91,7 +95,7 @@ export const createUser = async (req, res) => {
             statusCode: 201,
             statusMessage: 'Created',
             data: {
-                id: user.insertId,
+                user: user,
                 token: token
             }
         })
