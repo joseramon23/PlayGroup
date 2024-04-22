@@ -1,5 +1,5 @@
 import { pool } from '../config/db_connect.js'
-export class User {
+class User {
     constructor() {
         this.pool = pool
     }
@@ -57,3 +57,5 @@ export class User {
         return result[0]
     }
 }
+
+export default new User()

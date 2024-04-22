@@ -15,4 +15,4 @@ router.put('/users/:id', authToken, upload.single('image'), updateUser)
 router.put('/users/password/:id', authToken, upload.none(), userUpdatePassword)
 router.delete('/users/:id', authToken, deleteUser)
 
-export default router
+export const userRouter = (app) => app.use('/api', router)

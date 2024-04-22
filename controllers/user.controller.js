@@ -2,8 +2,7 @@ import fs from 'node:fs'
 import bcrypt from 'bcrypt'
 import jwt from 'jsonwebtoken'
 
-import UserModel from '../models/user.model.js'
-const User = new UserModel
+import User from '../models/user.model.js'
 
 import { validateUserSchema, validatePartialUser, validatePassUpdate } from '../schemas/users.js'
 import { unauthorizedMessage, errorMessage, validationError } from '../utils/errorHandler.js'
@@ -19,7 +18,12 @@ import { responseSuccessData, responseCreatedData } from '../utils/responseHandl
 export const getAllUsers = async (req, res) => {
     try {
         const users = await User.getAll()
-        res.status(200).json(responseCreatedData('Petición aceptada', users, 'Accepted'))
+        res.status(200).json({
+            success: true,
+            statusCode: 200,
+            statusMessage: 'Accepted',
+            data: users
+        })
     } catch (error) {
         res.status(500).json(errorMessage(`Error al obtener los usuarios: ${error.message}`))
     }
@@ -82,7 +86,15 @@ export const createUser = async (req, res) => {
             { expiresIn: '1d'}
         ) // Crear token de autenticación
 
-        res.status(201).json(responseCreatedData('Se ha creado correctamente', {id: user.insertId, token: token}))
+        res.status(201).json({
+            success: true,
+            statusCode: 201,
+            statusMessage: 'Created',
+            data: {
+                id: user.insertId,
+                token: token
+            }
+        })
 
     } catch(error) {
         res.status(500).json(errorMessage(`Error al crear el usuario: ${error.message}`))
@@ -121,7 +133,12 @@ export const updateUser = async (req, res) => {
 
     try {
         await User.update(req.params.id, updateUser.data)
-        res.status(200).json(responseCreatedData('Se ha actualizado correctamente', updateUser.data))
+        res.status(200).json({
+            success: true,
+            statusCode: 200,
+            statusMessage: 'Updated',
+            data: updateUser.data
+        })
     } catch(error) {
         res.status(500).json(errorMessage(`Error al actualizar el usuario: ${error.message}`))
     }
@@ -145,7 +162,11 @@ export const deleteUser = async (req, res) => {
     try {
         const deleteUser = await User.delete(userId)
         if(deleteUser) {
-            res.status(200).json(responseSuccessData(deleteUser, 'Deleted'))
+            res.status(200).json({
+                success: true,
+                statusCode: 200,
+                statusMessage: 'Deleted'
+            })
         }
     } catch(error) {
         res.status(500).json(errorMessage(`Error al borrar el usuario: ${error.message}`))
@@ -166,7 +187,7 @@ export const userUpdatePassword = async (req, res) => {
         return res.status(401).json(unauthorizedMessage())
     }
     
-    const user = await User.getUser(req.params.id)
+    const user = await User.getId(req.params.id)
     const validatePass = await validatePassUpdate(req.body)
 
     if(!validatePass.success) {
@@ -180,8 +201,13 @@ export const userUpdatePassword = async (req, res) => {
             // Actualizar contraseña
             const encryptNewPass = bcrypt.hashSync(user.password, 10)
             user.password = encryptNewPass
-            await User.update(userId, user)
-            res.status(201).json(responseSuccessData('Contraseña actualizada', 'Updated', 201))
+            await User.update(req.params.id, user)
+            res.status(201).json({
+                success: true,
+                statusCode: 201,
+                statusMessage: 'Updated password',
+                data: user
+            })
         } else {
             res.status(400).json(validationError('Contraseña incorrecta'))
         }
@@ -220,7 +246,15 @@ export const loginUser = async (req, res) => {
             process.env.JWT_SECRET,
             { expiresIn: '1d'}
         )
-        res.status(200).json(responseCreatedData('Sesion iniciada correctamente', {id: user.id, token: token}, 'Login'))
+        res.status(200).json({
+            success: true,
+            statusCode: 200,
+            statusMessage: 'Logged',
+            data:{
+                id: user.id,
+                token: token
+            } 
+        })
     } catch (error) {
         res.status(500).json(errorMessage(`Error al iniciar sesión: ${error.message}`))
     }
