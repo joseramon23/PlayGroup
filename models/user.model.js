@@ -8,7 +8,7 @@ class User {
         const sql = 'SELECT id, name, email, kindergarten_id, rol, image FROM users'
         const [result] = await this.pool.query(sql)
         
-        if(result.length <= 0)  throw new Error("No se han encontrado usuarios")
+        if(result.length < 0)  throw new Error("No se han encontrado usuarios")
 
         return result
     }
@@ -27,7 +27,8 @@ class User {
         const [result] = await this.pool.query(sql, [name, email, kindergarten_id, password, rol, image])
 
         if(result.affectedRows <= 0) throw new Error("Ha ocurrido un error al crear el usuario")
-        return result
+        const user = await this.getId(result.insertId)
+        return user
     }
 
     async update(id, data) {
@@ -38,7 +39,8 @@ class User {
         const [result] = await this.pool.query(sql, [...values, id])
 
         if(result.affectedRows <= 0) throw new Error("Ha ocurrido un error al actualizar el usuario")
-        return result
+        const updateUser = await this.getId(id)
+        return updateUser
     }
 
     async delete(id) {
