@@ -32,7 +32,7 @@ CREATE TABLE students (
     kindergarten_id INT NOT NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    FOREIGN KEY (kindergarten_id) REFERENCES kindergarten(id)
+    FOREIGN KEY (kindergarten_id) REFERENCES kindergarten(id) ON DELETE CASCADE
 );
 
 -- Tabla comidas
@@ -105,4 +105,4 @@ CREATE TABLE password_reset_token (
 ALTER TABLE users
 ADD COLUMN kindergarten_id INT,
 ADD CONSTRAINT fk_users_kindergarten
-FOREIGN KEY (kindergarten_id) REFERENCES kindergarten(id);
+FOREIGN KEY (kindergarten_id) REFERENCES kindergarten(id) ON DELETE CASCADE;
