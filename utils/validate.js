@@ -1,7 +1,5 @@
-import UserModel from '../models/user.model.js'
-import KindergartenModel from '../models/kindergarten.model.js'
-const User = new UserModel
-const Kindergarten = new KindergartenModel
+import User from '../models/user.model.js'
+import Kindergarten from '../models/kindergarten.model.js'
 
 export const userExists = async (userId) => {
     try{
