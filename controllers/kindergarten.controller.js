@@ -1,12 +1,8 @@
-import KindergartenModel from '../models/kindergarten.model.js'
-import UserModel from '../models/user.model.js'
-
-const User = new UserModel
-const Kindergarten = new KindergartenModel
+import Kindergarten from '../models/kindergarten.model.js'
+import User from '../models/user.model.js'
 
 import { validateKindergartenSchema, validatePartialKindergarten } from '../schemas/kindergarten.js'
 import { errorMessage, unauthorizedMessage, validationError } from '../utils/errorHandler.js'
-import { responseSuccessData, responseCreatedData } from '../utils/responseHandler.js'
 
 /**
  * Get all kindergartens.
@@ -23,7 +19,12 @@ export const getAllKindergarten = async (req, res) => {
 
     try {
         const kindergartens = await Kindergarten.getAll()
-        res.status(200).json(responseSuccessData(kindergartens))
+        res.status(200).json({
+            success: true,
+            statusCode: 200,
+            statusMessage: 'Accepted',
+            data: kindergartens
+        })
     } catch(error) {
         res.status(500).json(errorMessage(`Error al obtener las guarderias: ${error.message}`))
     }
@@ -42,7 +43,12 @@ export const getKindergarten = async (req, res) => {
 
     try {
         const kindergarten = await Kindergarten.getId(req.params.id)
-        res.status(200).json(responseSuccessData(kindergarten))
+        res.status(200).json({
+            success: true,
+            statusCode: 200,
+            statusMessage: 'Accepted',
+            data: kindergarten
+        })
     } catch(error) {
         res.status(500).json(errorMessage(`Error al obtener la guardería: ${error.message}`))
     }
@@ -56,25 +62,28 @@ export const getKindergarten = async (req, res) => {
  */
 export const createKindergarten = async (req, res) => {
     // validacion de los datos
-    const data = await validateKindergartenSchema(req.body)
+    const result = await validateKindergartenSchema(req.body)
 
-    if(!data.success) {
-        return res.status(400).json(validationError(JSON.parse(data.error.message)))
+    if(!result.success) {
+        return res.status(400).json(validationError(JSON.parse(result.error.message)))
     }
 
     try{
-        // Obtener los datos del usuario que crea la guarderia
-        const { id } = req.user
-        const user = await User.getUser(id)
-
         // Crear la nueva guarderia
-        data.data.user_id = id
-        const kindergarten = await Kindergarten.create(data.data)
+        result.data.user_id = req.user.id
+        const kindergarten = await Kindergarten.create(result.data)
         
-        user.kindergarten_id = kindergarten.insertId
-        await User.updateUser(id, user)
+        const updateUser = await User.update(req.user.id, {kindergarten_id: kindergarten.id})
 
-        res.status(201).json(responseCreatedData('Se ha creado correctamente', { kindergarten: kindergarten.insertId, userId: user.id}))
+        res.status(201).json({
+            success: true,
+            statusCode: 201,
+            statusMessage: 'Created',
+            data: {
+                kindergarten: kindergarten,
+                user: updateUser
+            }
+        })
     } catch (error) {
         res.status(500).json(errorMessage(`Error al crear la guardería: ${error.message}`))
     }
@@ -89,7 +98,7 @@ export const createKindergarten = async (req, res) => {
  * @returns {Object} - The response object with the updated kindergarten details.
  */
 export const updateKindergarten = async (req, res) => {
-    const updateKg = await validatePartialKindergarten(req.body)
+    const result = await validatePartialKindergarten(req.body)
     
     if (req.user.kindergarten_id !== Number(req.params.id)) {
         return res.status(401).json(unauthorizedMessage('No estas autorizado para acceder a esta guardería'))
@@ -99,15 +108,18 @@ export const updateKindergarten = async (req, res) => {
         return res.status(400).json(validationError('El cuerpo de la solicitud está vacío'))
     }
 
-    if(!updateKg.success) {
+    if(!result.success) {
         return res.status(400).json(validationError(JSON.parse(updateKg.error.message)))
     }
 
-    console.log(updateKg.data)
-
     try {
-        const result = await Kindergarten.update(req.params.id, updateKg.data)
-        res.status(200).json(responseSuccessData(result))
+        const kindergarten = await Kindergarten.update(req.params.id, result.data)
+        res.status(200).json({
+            success: true,
+            statusCode: 200,
+            statusMessage: 'Updated',
+            data: kindergarten
+        })
     } catch(error) {
         res.status(500).json(errorMessage(`Error al actualizar la guardería: ${error.message}`))       
     }
@@ -123,7 +135,11 @@ export const deleteKindergarten = async (req, res) => {
     try {
         const deleteKindergarten = await Kindergarten.delete(req.params.id)
         if(deleteKindergarten) {
-            res.status(200).json(responseSuccessData('Se ha borrado correctamente'))
+            res.status(200).json({
+                success: true,
+                statusCode: 200,
+                statusMessage: 'Deleted'
+            })
         }
     } catch(error) {
         res.status(500).json(errorMessage(error.message))

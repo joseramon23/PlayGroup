@@ -1,6 +1,6 @@
 import { pool } from '../config/db_connect.js'
 
-export class Kindergarten {
+class Kindergarten {
     constructor() {
         this.pool = pool
     }
@@ -29,7 +29,8 @@ export class Kindergarten {
         const [result] = await this.pool.query(sql, [name, address, phone, email, user_id])
 
         if(result.affectedRows <= 0) throw new Error('Error al crear la nueva guardería')
-        return result
+        const newKindergarten = await this.getId(result.insertId)
+        return newKindergarten
     }
 
     async update(id, data) {
@@ -37,10 +38,11 @@ export class Kindergarten {
         const values = Object.values(data)
         
         const sql = `UPDATE kindergarten SET ${fields} WHERE id = ?`
-        console.log(sql)
         const [result] = await this.pool.query(sql, [...values, id])
+
         if(result.affectedRows <= 0) throw new Error('Error al actualizar la guardería')
-        return result
+        const kindergarten = await this.getId(id)
+        return kindergarten
     }
 
     async delete(id) {
@@ -52,3 +54,5 @@ export class Kindergarten {
     }
 
 }
+
+export default new Kindergarten()

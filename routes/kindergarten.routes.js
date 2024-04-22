@@ -12,4 +12,4 @@ router.get('/kindergarten/:id', authToken, getKindergarten)
 router.put('/kindergarten/:id', authToken, updateKindergarten)
 router.delete('/kindergarten/:id', authToken, authAdmin, deleteKindergarten)
 
-export default router
+export const kindergartenRouter = (app) => app.use('/api', router)
