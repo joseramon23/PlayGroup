@@ -4,6 +4,7 @@ import bodyparser from 'body-parser'
 
 import { userRouter } from './routes/user.routes.js'
 import { kindergartenRouter } from './routes/kindergarten.routes.js'
+import { studentRouter } from './routes/student.routes.js'
 
 const PORT = process.env.PORT ?? 3000
 config()
@@ -15,6 +16,7 @@ app.use(bodyparser.urlencoded({ extended: true }))
 
 userRouter(app)
 kindergartenRouter(app)
+studentRouter(app)
 
 app.listen(PORT, () => {
     console.log(`Servidor iniciado en el puerto http://localhost:${PORT}`)
