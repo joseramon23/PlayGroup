@@ -1,6 +1,5 @@
-import StudentModel from '../models/students.model.js'
+import Student from '../models/students.model.js'
 import { validatePartialStudent, validateStudentSchema } from '../schemas/student.js'
-const Student = new StudentModel
 
 import { errorMessage, unauthorizedMessage, validationError } from '../utils/errorHandler.js'
 
@@ -12,8 +11,14 @@ import { errorMessage, unauthorizedMessage, validationError } from '../utils/err
  * @returns {Promise<void>} - A promise that resolves when the operation is complete.
  */
 export const getAllStudents = async (req, res) => {
+    const { kindergarten } = req.query
+
+    if (Number(kindergarten) !== Number(req.user.kindergarten_id) && req.user.rol !== 'webadmin') {
+        return res.status(401).json(unauthorizedMessage('No perteneces a esta guardería'))
+    }
+
     try {
-        const students = await Student.getAll()
+        const students = await Student.getAll({ kindergarten })
         res.status(200).json({
             success: true,
             statusCode: 200,
@@ -36,7 +41,7 @@ export const getStudent = async (req, res) => {
     try {
         const student = await Student.getId(req.params.id)
 
-        if(student.kindergarten_id !== Number(req.user.kindergarten_id)) {
+        if(student.kindergarten_id !== Number(req.user.kindergarten_id) && req.user.rol !== 'webadmin') {
             return res.status(401).json(unauthorizedMessage())
         }
 
@@ -63,7 +68,11 @@ export const createStudent = async (req, res) => {
     const result = await validateStudentSchema(req.body)
     const image = req.file?.filename
 
-    if(!data.success) {
+    if(result.data.kindergarten_id !== Number(req.user.kindergarten_id)) {
+        return res.status(401).json(unauthorizedMessage())
+    }
+
+    if(!result.success) {
         return res.status(400).json(validationError(JSON.parse(result.error.message)))
     }
 
@@ -92,6 +101,10 @@ export const updateStudent = async (req, res) => {
     const result = await validatePartialStudent(req.body)
     const image = req.file?.filename
 
+    if(Number(req.query.kindergarten) !== Number(req.user.kindergarten_id)) {
+        return res.status(401).json(unauthorizedMessage())
+    }
+
     if(!result.success) {
         return res.status(400).json(validationError(JSON.parse(result.error.message)))
     }
@@ -118,6 +131,13 @@ export const updateStudent = async (req, res) => {
  * @returns {Promise<void>} - A promise that resolves when the student is deleted.
  */
 export const deleteStudent = async (req, res) => {
+
+    if (!req.query.kindergarten) return res.status(400).json(errorMessage('Debes introducir la id de al guardería'))
+    
+    if(Number(req.query.kindergarten) !== Number(req.user.kindergarten_id) && req.user.rol !== 'webadmin') {
+        return res.status(401).json(unauthorizedMessage())
+    }
+
     try {
         const student = await Student.delete(req.params.id)
         if(student) {
