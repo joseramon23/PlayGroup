@@ -1,28 +1,29 @@
 import { pool } from '../config/db_connect.js'
 
-export class Student {
+class Student {
     constructor() {
         this.pool = pool
     }
 
-    async getAll() {
-        const sql = 'SELECT name, image, birthdate, kindergarten_id, created_at, updated_at FROM students'
+    async getAll({ kindergarten }) {
+        if (kindergarten) {
+            const sql = `SELECT id, name, image, birthdate, kindergarten_id, created_at, updated_at
+                FROM students WHERE kindergarten_id = ?`
+            const [result] = await this.pool.query(sql, [kindergarten])
+
+            if (result.length <= 0) return 'No hay estudiantes en esta guarderia'
+            return result
+        }
+
+        const sql = 'SELECT id, name, image, birthdate, kindergarten_id, created_at, updated_at FROM students'
         const [result] = await this.pool.query(sql)
 
         if (result.length <= 0) throw new Error('No se han encontrado alumnos')
         return result 
     }
 
-    async getByKindergarten(id) {
-        const sql = 'SELECT name, image, birthdate, created_at, updated_at FROM students WHERE kindergarten_id = ?'
-        const [result] = await this.pool.query(sql, [id])
-
-        if (result.length <= 0) throw new Error('No se han encontrado alumnos en esta guardería')
-        return result 
-    }
-
     async getId(id) {
-        const sql = 'SELECT name, image, birthdate, created_at, updated_at FROM students WHERE id = ?'
+        const sql = 'SELECT id, name, image, birthdate, created_at, updated_at FROM students WHERE id = ?'
         const [result] = await this.pool.query(sql, [id])
 
         if(result.length <= 0) throw new Error('No se ha encontrado el alumno seleccionado')
@@ -32,11 +33,12 @@ export class Student {
     async create(data) {
         const { name, image, birthdate, kindergarten_id } = data
         const sql = `INSERT INTO students (name, birthdate, kindergarten_id, image) 
-                    VALUES (?, ?, ?, ? ,? ,?)`
+                    VALUES (?, ?, ?, ?)`
         const [result] = await this.pool.query(sql, [name, birthdate, kindergarten_id, image])
 
         if(result.affectedRows <= 0) throw new Error("Ha ocurrido un error al crear")
-        return result
+        const student = await this.getId(result.insertId)
+        return student
     }
 
     async update(id, data) {
@@ -47,7 +49,8 @@ export class Student {
         const [result] = await this.pool.query(sql, [...values, id])
 
         if(result.affectedRows <= 0) throw new Error('Ha ocurrido un error al actualizar el alumno')
-        return result
+        const student = await this.getId(result.insertId)
+        return student
     }
 
     async delete(id) {
@@ -58,3 +61,5 @@ export class Student {
         return result
     }
 }
+
+export default new Student()
