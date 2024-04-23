@@ -5,7 +5,7 @@ import { authAdmin } from '../middlewares/authAdmin.js'
 
 const router = Router()
 
-router.get('/kindergarten', authToken, authAdmin, getAllKindergarten)
+router.get('/kindergarten', authToken, getAllKindergarten)
 router.post('/kindergarten', authToken, createKindergarten)
 
 router.get('/kindergarten/:id', authToken, getKindergarten)
