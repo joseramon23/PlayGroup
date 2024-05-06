@@ -102,7 +102,7 @@ export const updateStudent = async (req, res) => {
     const image = req.file?.filename
 
     if(Number(req.query.kindergarten) !== Number(req.user.kindergarten_id)) {
-        return res.status(401).json(unauthorizedMessage())
+        return res.status(401).json(unauthorizedMessage('La guardería introducida no pertenece a la del usuario'))
     }
 
     if(!result.success) {
