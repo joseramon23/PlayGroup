@@ -23,7 +23,7 @@ class Student {
     }
 
     async getId(id) {
-        const sql = 'SELECT id, name, image, birthdate, created_at, updated_at FROM students WHERE id = ?'
+        const sql = 'SELECT id, name, image, birthdate, kindergarten_id, created_at, updated_at FROM students WHERE id = ?'
         const [result] = await this.pool.query(sql, [id])
 
         if(result.length <= 0) throw new Error('No se ha encontrado el alumno seleccionado')
