@@ -19,7 +19,7 @@ export const validationError = (message, statusCode = 400, statusMessage = 'Bad 
 export const errorMessage = (message) => {
     return {
         success: false,
-        statusCode: 500,
+        statusCode: 400,
         statusMessage: 'Error',
         message: message
     }
