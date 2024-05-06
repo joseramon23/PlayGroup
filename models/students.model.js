@@ -49,7 +49,7 @@ class Student {
         const [result] = await this.pool.query(sql, [...values, id])
 
         if(result.affectedRows <= 0) throw new Error('Ha ocurrido un error al actualizar el alumno')
-        const student = await this.getId(result.insertId)
+        const student = await this.getId(id)
         return student
     }
 
