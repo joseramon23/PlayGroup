@@ -48,7 +48,7 @@ export const getStudent = async (req, res) => {
         res.status(200).json({
             success: true,
             statusCode: 200,
-            staatusMessage: 'Accepted',
+            statusMessage: 'Accepted',
             data: student
         })
     } catch (error) {
@@ -69,7 +69,7 @@ export const createStudent = async (req, res) => {
     const image = req.file?.filename
 
     if(result.data.kindergarten_id !== Number(req.user.kindergarten_id)) {
-        return res.status(401).json(unauthorizedMessage())
+        return res.status(401).json(unauthorizedMessage('El estudiante no pertenece a tu guardería'))
     }
 
     if(!result.success) {
