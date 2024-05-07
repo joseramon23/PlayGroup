@@ -11,6 +11,17 @@ let testKg = {
   email: "peques@gmail.com"
 }
 
+// funcion para obtener token
+async function loginAndGetToken(userData) {
+  const app = testServer(userRouter)
+  const response = await request(app)
+    .post('/api/login')
+    .send(userData)
+
+  return response.body.data.token
+}
+
+// TODO cambiar token por la función
 describe('/GET kindergarten', () => {
   it('Deberia devolver todas las guarderias', async () => {
     const app = testServer(kindergartenRouter)
