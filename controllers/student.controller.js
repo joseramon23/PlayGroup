@@ -13,7 +13,7 @@ import { errorMessage, unauthorizedMessage, validationError } from '../utils/err
 export const getAllStudents = async (req, res) => {
     const { kindergarten } = req.query
 
-    if (Number(kindergarten) !== Number(req.user.kindergarten_id) && req.user.rol !== 'webadmin') {
+    if (!(Number(kindergarten) !== Number(req.user.kindergarten_id) || req.user.rol !== 'webadmin')) {
         return res.status(401).json(unauthorizedMessage('No perteneces a esta guardería'))
     }
 
@@ -41,7 +41,7 @@ export const getStudent = async (req, res) => {
     try {
         const student = await Student.getId(req.params.id)
 
-        if(student.kindergarten_id !== Number(req.user.kindergarten_id) && req.user.rol !== 'webadmin') {
+        if(!(student.kindergarten_id !== Number(req.user.kindergarten_id) || req.user.rol !== 'webadmin')) {
             return res.status(401).json(unauthorizedMessage())
         }
 
