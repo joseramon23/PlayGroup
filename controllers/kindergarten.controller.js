@@ -11,9 +11,9 @@ import { errorMessage, unauthorizedMessage, validationError } from '../utils/err
  * @returns {Object} - The response object with the list of kindergartens.
  */
 export const getAllKindergarten = async (req, res) => {
-    const { id, rol } = req.user
+    const { rol } = req.user
 
-    if (id !== Number(req.params.id) && rol !== 'webadmin') {
+    if (rol !== 'webadmin') {
         return res.status(401).json(unauthorizedMessage())
     }
 
@@ -37,7 +37,7 @@ export const getAllKindergarten = async (req, res) => {
  * @returns {Object} - The response object with the kindergarten details.
  */
 export const getKindergarten = async (req, res) => {
-    if (req.user.rol !== 'webadmin' && req.user.kindergarten_id !== req.params.id) {
+    if (!(req.user.kindergarten_id === Number(req.params.id) || req.user.rol === 'webadmin')) {
         return res.status(401).json(unauthorizedMessage('No estas autorizado para acceder a esta guardería'))
     }
 
