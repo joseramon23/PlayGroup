@@ -38,7 +38,7 @@ export const getAllUsers = async (req, res) => {
 export const getUser = async (req, res) => {
     const { id, rol } = req.user
 
-    if (id !== Number(req.params.id) && rol !== 'webadmin') {
+    if (!(id !== Number(req.params.id) || rol !== 'webadmin')) {
         return res.status(401).json(unauthorizedMessage())
     }
 
@@ -71,7 +71,9 @@ export const createUser = async (req, res) => {
         return res.status(400).json(validationError(JSON.parse(data.error.message)))
     }
 
-    if(data.data.password !== data.data.passwordConfirm) return res.status(400).json(validationError('Las contraseñas no coinciden'))
+    if(data.data.password !== data.data.passwordConfirm) {
+        return res.status(400).json(validationError('Las contraseñas no coinciden'))
+    }
 
     const { passwordConfirm, ...userData } = data.data
     
